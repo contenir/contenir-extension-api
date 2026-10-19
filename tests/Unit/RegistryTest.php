@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Tests\Unit;
 
 use Contenir\Extension\Api\Diagnostic\DiagnosticDeclaration;
+use Contenir\Extension\Api\Event\Cache\CachePostClear;
+use Contenir\Extension\Api\Event\Record\RecordPostDelete;
+use Contenir\Extension\Api\Event\Record\RecordPostSave;
+use Contenir\Extension\Api\Event\Record\RecordPreSave;
+use Contenir\Extension\Api\Event\Record\RecordSave;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Field\FieldTypeDeclaration;
 use Contenir\Extension\Api\Form\Form;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Handler\HandlerDeclaration;
+use Contenir\Extension\Api\Listener\Delivery;
+use Contenir\Extension\Api\Listener\ListenerDeclaration;
+use Contenir\Extension\Api\Listener\Scope;
 use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
@@ -22,10 +30,13 @@ use Contenir\Extension\Api\Settings\SettingsCategory;
 use Contenir\Extension\Api\Settings\SettingsSection;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ApiKeyCheck;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ConnectHandler;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\Event\SubscriberPostSync;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\Event\SubscriberSync;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ListFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ResyncTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignupScripts;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\SyncSubscriber;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -60,6 +71,15 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function acceptsEveryChangeOnAnEventWithoutValues(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen('warm', CachePostClear::class, SyncSubscriber::class, Scope::all());
+
+        static::assertCount(1, $registry->registration()->listeners);
+    }
+
+    #[Test]
     public function declaresAModuleWithItsPieces(): void
     {
         $registry = new Registry('formbuilder');
@@ -80,6 +100,29 @@ final class RegistryTest extends TestCase
                 '/addon/templates',
             ),
             $registry->registration()->module,
+        );
+    }
+
+    #[Test]
+    public function declaresAPostListenerToRunInTheBackground(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen(
+            'sync-subscriber',
+            RecordPostSave::class,
+            SyncSubscriber::class,
+            Scope::fields('email', 'name'),
+        );
+
+        static::assertEquals(
+            [ListenerDeclaration::of(
+                'sync-subscriber',
+                RecordPostSave::class,
+                SyncSubscriber::class,
+                Scope::fields('email', 'name'),
+                Delivery::Background,
+            )],
+            $registry->registration()->listeners,
         );
     }
 
@@ -202,6 +245,20 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function keepsPreListenersOutOfTheBackground(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Listener "check-meta" cannot run in the background: only Post listeners can');
+
+        (new Registry('seo'))->listen(
+            'check-meta',
+            RecordPreSave::class,
+            SyncSubscriber::class,
+            delivery: Delivery::Background,
+        );
+    }
+
+    #[Test]
     public function keepsSettingsSectionsInOrder(): void
     {
         $registry = new Registry('newsletter');
@@ -234,6 +291,20 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function letsAPostListenerAskToRunImmediately(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen(
+            'sync-subscriber',
+            RecordPostSave::class,
+            SyncSubscriber::class,
+            delivery: Delivery::Immediate,
+        );
+
+        static::assertSame(Delivery::Immediate, $registry->registration()->listeners[0]->delivery ?? null);
+    }
+
+    #[Test]
     public function letsAWebhookShareAHandlersName(): void
     {
         $registry = new Registry('newsletter');
@@ -241,6 +312,50 @@ final class RegistryTest extends TestCase
         $registry->webhook('connect', SignedWebhook::class);
 
         static::assertSame(['connect'], array_keys($registry->registration()->webhooks));
+    }
+
+    #[Test]
+    public function letsOneNameListenToSeveralEvents(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen('sync-subscriber', RecordPostSave::class, SyncSubscriber::class);
+        $registry->listen('sync-subscriber', RecordPostDelete::class, SyncSubscriber::class);
+
+        static::assertCount(2, $registry->registration()->listeners);
+    }
+
+    #[Test]
+    public function letsPostListenersAskForTheBackground(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen('sync', RecordPostSave::class, SyncSubscriber::class, delivery: Delivery::Background);
+
+        static::assertSame(Delivery::Background, $registry->registration()->listeners[0]->delivery ?? null);
+    }
+
+    #[Test]
+    public function listensToAnotherAddOnsEvents(): void
+    {
+        $registry = new Registry('crm');
+        $registry->listen('note-sync', SubscriberPostSync::class, SyncSubscriber::class);
+        $registry->listen('note-sync-now', SubscriberSync::class, SyncSubscriber::class);
+
+        static::assertSame(
+            [Delivery::Background, Delivery::Immediate],
+            [
+                $registry->registration()->listeners[0]->delivery ?? null,
+                $registry->registration()->listeners[1]->delivery ?? null,
+            ],
+        );
+    }
+
+    #[Test]
+    public function listensToEveryChangeByDefault(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen('sync-subscriber', RecordPostSave::class, SyncSubscriber::class);
+
+        static::assertEquals(Scope::all(), $registry->registration()->listeners[0]->scope ?? null);
     }
 
     #[Test]
@@ -285,6 +400,15 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAClassThatIsNotAnEvent(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Event class "' . SyncSubscriber::class . '"');
+
+        (new Registry('newsletter'))->listen('sync', SyncSubscriber::class, SyncSubscriber::class);
+    }
+
+    #[Test]
     public function rejectsAComponentWithoutAScript(): void
     {
         $this->expectException(InvalidDeclarationException::class);
@@ -323,6 +447,22 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAFieldScopeOnAnEventWithoutValues(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage(
+            'Listener "warm" has a field scope, but ' . CachePostClear::class . ' is not about changing values',
+        );
+
+        (new Registry('newsletter'))->listen(
+            'warm',
+            CachePostClear::class,
+            SyncSubscriber::class,
+            Scope::fields('title'),
+        );
+    }
+
+    #[Test]
     public function rejectsAFieldTypeClassOfTheWrongKind(): void
     {
         $this->expectException(InvalidDeclarationException::class);
@@ -336,6 +476,15 @@ final class RegistryTest extends TestCase
         $this->expectException(InvalidDeclarationException::class);
 
         (new Registry('newsletter'))->handler('connect', SignedWebhook::class);
+    }
+
+    #[Test]
+    public function rejectsAListenerOfTheWrongKind(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Listener class "' . ResyncTask::class . '"');
+
+        (new Registry('newsletter'))->listen('sync', RecordPostSave::class, ResyncTask::class);
     }
 
     #[Test]
@@ -378,6 +527,15 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('Handler name "Connect"');
 
         (new Registry('newsletter'))->handler('Connect', ConnectHandler::class);
+    }
+
+    #[Test]
+    public function rejectsAMalformedListenerName(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Listener name "Sync"');
+
+        (new Registry('newsletter'))->listen('Sync', RecordPostSave::class, SyncSubscriber::class);
     }
 
     #[Test]
@@ -437,6 +595,18 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('The add-on has already declared its module');
 
         $registry->module('/addon/other.xml');
+    }
+
+    #[Test]
+    public function rejectsANameListeningToTheSameEventTwice(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->listen('sync', RecordPostSave::class, SyncSubscriber::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Listener "sync" already listens to ' . RecordPostSave::class);
+
+        $registry->listen('sync', RecordPostSave::class, SyncSubscriber::class);
     }
 
     #[Test]
@@ -654,17 +824,33 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function runsPreAndMainStageListenersImmediately(): void
+    {
+        $registry = new Registry('slug-tools');
+        $registry->listen('normalise-slug', RecordPreSave::class, SyncSubscriber::class);
+        $registry->listen('write-index', RecordSave::class, SyncSubscriber::class, delivery: Delivery::Immediate);
+
+        $listeners = $registry->registration()->listeners;
+
+        static::assertSame(
+            [Delivery::Immediate, Delivery::Immediate],
+            [$listeners[0]->delivery ?? null, $listeners[1]->delivery ?? null],
+        );
+    }
+
+    #[Test]
     public function startsEmpty(): void
     {
         $registration = (new Registry('newsletter'))->registration();
 
         static::assertEquals(
-            [[], [], null, [], [], [], [], [], [], new Module(), []],
+            [[], [], null, [], [], [], [], [], [], [], new Module(), []],
             [
                 $registration->settingsSections,
                 $registration->fieldTypes,
                 $registration->icons,
                 $registration->diagnostics,
+                $registration->listeners,
                 $registration->handlers,
                 $registration->webhooks,
                 $registration->migrations,

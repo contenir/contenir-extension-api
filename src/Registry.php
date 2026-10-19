@@ -6,6 +6,7 @@ namespace Contenir\Extension\Api;
 
 use Contenir\Extension\Api\Diagnostic\CheckInterface;
 use Contenir\Extension\Api\Diagnostic\DiagnosticDeclaration;
+use Contenir\Extension\Api\Event\EventInterface;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Field\FieldTypeDeclaration;
 use Contenir\Extension\Api\Field\FieldTypeInterface;
@@ -14,6 +15,10 @@ use Contenir\Extension\Api\Handler\HandlerDeclaration;
 use Contenir\Extension\Api\Handler\HandlerInterface;
 use Contenir\Extension\Api\Handler\WebhookInterface;
 use Contenir\Extension\Api\Internal\Names;
+use Contenir\Extension\Api\Listener\Delivery;
+use Contenir\Extension\Api\Listener\ListenerDeclaration;
+use Contenir\Extension\Api\Listener\ListenerInterface;
+use Contenir\Extension\Api\Listener\Scope;
 use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
@@ -68,6 +73,11 @@ final class Registry
      * @var array<string, DiagnosticDeclaration>
      */
     private array $diagnostics = [];
+
+    /**
+     * @var array<string, ListenerDeclaration> By name and event
+     */
+    private array $listeners = [];
 
     /**
      * @var array<string, HandlerDeclaration>
@@ -235,6 +245,36 @@ final class Registry
     }
 
     /**
+     * A listener: what the add-on can do when $event fires. A site binds it
+     * to sections in admin.xml, and a section with no binding never calls it.
+     * $scope is the widest field scope a binding may ask for; a field scope
+     * needs an event about changing values. Post listeners run in the
+     * background unless $delivery asks for Immediate; listeners at other
+     * stages always run immediately. One name may listen to several events.
+     *
+     * @param class-string<EventInterface>    $event
+     * @param class-string<ListenerInterface> $listener
+     *
+     * @throws InvalidDeclarationException When the name is malformed, a class is the wrong kind, the scope or delivery doesn't suit the event, or the name already listens to the event.
+     */
+    public function listen(
+        string $name,
+        string $event,
+        string $listener,
+        ?Scope $scope = null,
+        ?Delivery $delivery = null,
+    ): void {
+        $declaration = ListenerDeclaration::of($name, $event, $listener, $scope, $delivery);
+
+        $key = "{$name} {$event}";
+        if (array_key_exists($key, $this->listeners)) {
+            throw InvalidDeclarationException::because(sprintf('Listener "%s" already listens to %s', $name, $event));
+        }
+
+        $this->listeners[$key] = $declaration;
+    }
+
+    /**
      * A folder of migrations creating the add-on's ext_<handle>_ tables, in
      * the site's database unless $target says the CMS's.
      *
@@ -273,6 +313,7 @@ final class Registry
             fieldTypes: $this->fieldTypes,
             icons: $this->icons,
             diagnostics: $this->diagnostics,
+            listeners: array_values($this->listeners),
             handlers: $this->handlers,
             webhooks: $this->webhooks,
             migrations: array_values($this->migrations),

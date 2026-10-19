@@ -19,5 +19,15 @@ adheres to [Semantic Versioning](https://semver.org/).
   scripts with a consent category (`Script\*`), module pieces (`Module\*`) and dependencies on other add-ons.
 - `Context\ExtensionContextInterface`: the add-on's handle, services, logger, clock and site path, given to its code
   wherever it runs.
+- The event catalogue (`Event\Catalogue`), with Pre, main and Post stages: records (save, create, delete, duplicate,
+  status change, reorder, move and publish), settings saves, asset uploads and deletes, permission changes, sign-ins
+  and refused sign-ins, form entries (submit, status change, redaction), cache clears, migration runs, and
+  `ExtensionPostFail` for an add-on's failures. Pre events can change values, add field errors, warn, flag or stop;
+  Post events carry the outcome.
+- `Registry::listen()`, with a field scope a site's binding may narrow but not widen, and Post listeners in the
+  background unless they ask to run immediately.
+- `Log\SourceLogger`, which stamps an add-on's log entries with `extension.<handle>`, and `Url\UrlResolverInterface`
+  with `Url\RecordReference`, for a record's public address.
+- The context gives add-on code a URL resolver and a PSR-14 dispatcher for the add-on's own events.
 - The legacy CMS's operation contracts and `IconPathProviderInterface`, moved here unchanged in shape so the CMS can
   alias its old names to them for one release.

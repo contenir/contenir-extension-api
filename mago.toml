@@ -12,6 +12,7 @@ parentheses-around-new-in-member-access = true
 
 [linter.rules]
 # The shared base excludes "test/"; this repository keeps its suites under "tests/".
-too-many-methods = { exclude = ["tests/"] }
+# The conformance test cases are test code that ships, one method per test.
+too-many-methods = { exclude = ["tests/", "src/Conformance/"] }
 [analyzer]
 excludes = ["tests"]

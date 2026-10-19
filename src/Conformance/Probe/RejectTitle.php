@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Contenir\Extension\Api\Conformance\Probe;
+
+use Contenir\Extension\Api\Context\ExtensionContextInterface;
+use Contenir\Extension\Api\Event\EventInterface;
+use Contenir\Extension\Api\Event\PreEventInterface;
+use Contenir\Extension\Api\Listener\ListenerInterface;
+use Override;
+
+/**
+ * Adds an error against the title field.
+ *
+ * @api
+ */
+final class RejectTitle implements ListenerInterface
+{
+    #[Override]
+    public function handle(EventInterface $event, ExtensionContextInterface $context): void
+    {
+        if ($event instanceof PreEventInterface) {
+            $event->addError('title', 'The probe rejects this title');
+        }
+    }
+}

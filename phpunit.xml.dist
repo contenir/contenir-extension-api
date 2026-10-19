@@ -35,5 +35,9 @@
         <include>
             <directory suffix=".php">./src</directory>
         </include>
+        <exclude>
+            <!-- The conformance suite is test code that ships for hosts to run; the in-memory host's tests run it. -->
+            <directory suffix=".php">./src/Conformance</directory>
+        </exclude>
     </source>
 </phpunit>

@@ -1,2 +1,104 @@
-# contenir-extension-api
-The add-on API for Contenir CMS: contracts, event catalogue, conformance suite and an in-memory host
+# contenir/extension-api
+
+[![Continuous Integration](https://github.com/contenir/contenir-extension-api/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/contenir/contenir-extension-api/actions/workflows/continuous-integration.yml)
+[![codecov](https://codecov.io/gh/contenir/contenir-extension-api/graph/badge.svg)](https://codecov.io/gh/contenir/contenir-extension-api)
+
+The add-on API for Contenir CMS. Add-ons build against this package and nothing else; each CMS implements it as a
+host. So an add-on works the same whether the CMS underneath is the legacy ZF1 CMS or the Mezzio rewrite.
+
+It holds only contracts and value objects, with no framework types: PSR-3 logging, PSR-7 requests, PSR-11 services
+and PSR-20 time.
+
+## Requirements
+
+- PHP 8.3, 8.4 or 8.5
+
+## An add-on
+
+An add-on is a Composer package of type `contenir-extension`, named `contenir-extension/<handle>`, whose classes
+live under `Contenir\Extension\<Package>\`. Its composer.json names its handle and its entry class:
+
+```json
+{
+    "name": "contenir-extension/newsletter",
+    "type": "contenir-extension",
+    "require": {
+        "contenir/extension-api": "^0.1"
+    },
+    "autoload": {
+        "psr-4": { "Contenir\\Extension\\Newsletter\\": "src/" }
+    },
+    "extra": {
+        "contenir": {
+            "handle": "newsletter",
+            "extension": "Contenir\\Extension\\Newsletter\\NewsletterExtension"
+        }
+    }
+}
+```
+
+The entry class implements `ExtensionInterface`. The host constructs it and calls `register()` with a `Registry`
+for the add-on's handle; each registry method declares one thing the add-on adds to the CMS:
+
+```php
+use Contenir\Extension\Api\ExtensionInterface;
+use Contenir\Extension\Api\Form\Field;
+use Contenir\Extension\Api\Form\Form;
+use Contenir\Extension\Api\Registry;
+use Contenir\Extension\Api\Schedule\Frequency;
+use Contenir\Extension\Api\Settings\SettingsCategory;
+use Contenir\Extension\Api\Settings\SettingsSection;
+
+final class NewsletterExtension implements ExtensionInterface
+{
+    public function register(Registry $registry): void
+    {
+        $registry->settingsSection(new SettingsSection(
+            name: 'newsletter',
+            title: 'Newsletter',
+            category: SettingsCategory::Integration,
+            form: new Form([
+                new Field('list_id', 'List'),
+                Field::password('api_key', 'API key'),
+            ]),
+        ));
+
+        $registry->handler('connect-callback', ConnectCallback::class);
+        $registry->webhook('unsubscribe', UnsubscribeWebhook::class);
+        $registry->diagnostic('connection', ConnectionCheck::class);
+        $registry->schedule('resync', Resync::class, Frequency::everyMinutes(60));
+    }
+}
+```
+
+## Extension points
+
+| Registry method | Adds |
+|---|---|
+| `settingsSection()` | a Site Settings section described as data, with its operations, contributions, save listeners and row hydrators |
+| `fieldType()` | a field type any section can use |
+| `icons()` | a folder of SVG icons |
+| `diagnostic()` | a check in the update check, whose result can offer a one-click fix or a guided fix |
+| `handler()` | an admin request handler at `/admin/extension/<handle>/<name>`, behind the ACL resource `extension.<handle>.<name>` |
+| `webhook()` | a public handler at `/extension/<handle>/<name>`, which verifies its caller's signature or token before it runs |
+| `migrations()` | tables of the add-on's own, `ext_<handle>_*`, on the site's database or the CMS's |
+| `schedule()` | recurring work for the host's job runner, every so many minutes or on a cron expression |
+| `script()` | scripts for public pages, each with its placement and consent category |
+| `module()`, `assets()`, `component()`, `templates()` | an admin area of the add-on's own, with its scripts, styles and dashboard components; only a module may ship templates |
+| `dependsOn()` | another add-on this one uses, through that add-on's `Event\` and `Api\` namespaces only |
+
+A host reads everything declared back with `Registry::registration()`.
+
+The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
+`Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
+`IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for
+one release.
+
+## Status
+
+This package is phase 3 of the Contenir extensions plan. It is not tagged yet: hosts and add-ons follow `0.1.x-dev`
+until it is.
+
+## Licence
+
+BSD-3-Clause. See [LICENSE.md](LICENSE.md).

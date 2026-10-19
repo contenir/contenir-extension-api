@@ -39,6 +39,18 @@ final class PreEventTest extends TestCase
     }
 
     #[Test]
+    public function keepsADetailForAdministrators(): void
+    {
+        $event = new CachePreClear('all');
+        $event->stop('The CDN add-on couldn\'t check this', 'TimeoutException: 30s');
+
+        static::assertSame(['The CDN add-on couldn\'t check this', 'TimeoutException: 30s'], [
+            $event->stopMessage(),
+            $event->stopDetail(),
+        ]);
+    }
+
+    #[Test]
     public function letsListenersChangeValues(): void
     {
         $event = new RecordPreSave(
@@ -79,8 +91,8 @@ final class PreEventTest extends TestCase
         $event->stop('A deploy is running');
 
         static::assertSame(
-            [false, true, 'A deploy is running'],
-            [$event->proceeds(), $event->isPropagationStopped(), $event->stopMessage()],
+            [false, true, 'A deploy is running', ''],
+            [$event->proceeds(), $event->isPropagationStopped(), $event->stopMessage(), $event->stopDetail()],
         );
     }
 

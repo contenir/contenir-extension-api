@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Context;
 
+use Contenir\Extension\Api\Exception\UnknownSettingException;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Container\ContainerInterface;
@@ -47,6 +49,14 @@ interface ExtensionContextInterface
      * The host's services.
      */
     public function services(): ContainerInterface;
+
+    /**
+     * One of the add-on's own settings sections, to read and write; by
+     * default the one named after its handle.
+     *
+     * @throws UnknownSettingException When the add-on declared no such section.
+     */
+    public function settings(?string $section = null): SettingsInterface;
 
     /**
      * The root of the site being managed.

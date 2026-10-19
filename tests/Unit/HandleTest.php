@@ -55,6 +55,12 @@ final class HandleTest extends TestCase
     }
 
     #[Test]
+    public function namesAFieldTypeWithTheHandle(): void
+    {
+        static::assertSame('mailchimp:optin', (new Handle('mailchimp'))->fieldType('optin'));
+    }
+
+    #[Test]
     public function namesAHandlersPermission(): void
     {
         static::assertSame('extension.newsletter.connect', (new Handle('newsletter'))->permission('connect'));

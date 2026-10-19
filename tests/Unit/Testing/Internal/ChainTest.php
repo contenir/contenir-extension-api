@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Tests\Unit\Testing\Internal;
 
+use Contenir\Extension\Api\Event\ChainLimit;
 use Contenir\Extension\Api\Exception\DispatchRefusedException;
 use Contenir\Extension\Api\Testing\Internal\Chain;
 use PHPUnit\Framework\Attributes\Group;
@@ -28,7 +29,7 @@ final class ChainTest extends TestCase
     public function letsEventsNestUpToItsDepth(): void
     {
         $chain = new Chain();
-        for ($depth = 1; $depth <= Chain::MAX_DEPTH; ++$depth) {
+        for ($depth = 1; $depth <= ChainLimit::DEPTH; ++$depth) {
             $chain->enter("Event{$depth}");
         }
 

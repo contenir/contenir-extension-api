@@ -158,7 +158,11 @@ final class RegistryTest extends TestCase
         $registry->fieldType('mailing-list', ListFieldType::class);
 
         static::assertEquals(
-            ['mailing-list' => new FieldTypeDeclaration('mailing-list', ListFieldType::class)],
+            ['newsletter:mailing-list' => new FieldTypeDeclaration(
+                'newsletter:mailing-list',
+                'mailing-list',
+                ListFieldType::class,
+            )],
             $registry->registration()->fieldTypes,
         );
     }
@@ -391,12 +395,12 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
-    public function rejectsABuiltInFieldTypeName(): void
+    public function prefixesABuiltInNameSoItCannotClash(): void
     {
-        $this->expectException(InvalidDeclarationException::class);
-        $this->expectExceptionMessage('Field type "select" is built in');
+        $registry = new Registry('newsletter');
+        $registry->fieldType('select', ListFieldType::class);
 
-        (new Registry('newsletter'))->fieldType('select', ListFieldType::class);
+        static::assertSame(['newsletter:select'], array_keys($registry->registration()->fieldTypes));
     }
 
     #[Test]
@@ -683,7 +687,7 @@ final class RegistryTest extends TestCase
         $registry->fieldType('mailing-list', ListFieldType::class);
 
         $this->expectException(InvalidDeclarationException::class);
-        $this->expectExceptionMessage('Field type "mailing-list" is already declared');
+        $this->expectExceptionMessage('Field type "newsletter:mailing-list" is already declared');
 
         $registry->fieldType('mailing-list', ListFieldType::class);
     }

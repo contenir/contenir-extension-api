@@ -7,7 +7,8 @@ usually has:
 - a settings section, with a masked signing secret (`ExampleExtension`);
 - a listener that logs a record's new title once its save has gone through (`NoteTitle`), which a site binds to
   its sections in admin.xml;
-- a public webhook that answers pings signed with the secret, and refuses any it cannot verify (`Ping`);
+- a public webhook that answers pings signed with the secret, which it reads from its own settings, and refuses any
+  it cannot verify (`Ping`);
 - a check in the update check, failing with a guided fix until the secret is set (`SecretCheck`).
 
 ## The boundary

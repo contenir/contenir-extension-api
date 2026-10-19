@@ -36,8 +36,10 @@ interface PreEventInterface extends EventInterface, StoppableEventInterface
 
     /**
      * Stops the action with a message the form shows, and ends the chain.
+     * $detail, such as a failure's technical summary, is shown only to
+     * administrators.
      */
-    public function stop(string $message): void;
+    public function stop(string $message, string $detail = ''): void;
 
     /**
      * A note the editor sees once the action has gone ahead ("save, but show

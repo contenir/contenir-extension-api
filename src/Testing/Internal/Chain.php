@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Testing\Internal;
 
+use Contenir\Extension\Api\Event\ChainLimit;
 use Contenir\Extension\Api\Exception\DispatchRefusedException;
 
 use function array_pop;
@@ -18,8 +19,6 @@ use function in_array;
  */
 final class Chain
 {
-    public const int MAX_DEPTH = 8;
-
     /**
      * @var list<string>
      */
@@ -35,7 +34,7 @@ final class Chain
         }
 
         $depth = count($this->running) + 1;
-        if ($depth > self::MAX_DEPTH) {
+        if ($depth > ChainLimit::DEPTH) {
             throw DispatchRefusedException::tooDeep($event, $depth);
         }
 

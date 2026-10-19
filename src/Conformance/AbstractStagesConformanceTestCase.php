@@ -10,6 +10,7 @@ use Override;
 use PHPUnit\Framework\Attributes\Test;
 
 use function array_map;
+use function str_contains;
 
 /**
  * The three stages of a save and what each guarantees (plan section 8): Pre
@@ -20,6 +21,16 @@ use function array_map;
  */
 abstract class AbstractStagesConformanceTestCase extends AbstractConformanceTestCase
 {
+    #[Test]
+    public function aFailingCreateListenerRollsANewRecordBack(): void
+    {
+        $this->bindProbe('fail', 'RecordCreate');
+        $this->bindProbe('record', 'RecordSave');
+        $outcome = $this->host->save(self::SECTION, null, ['title' => 'Brand new']);
+
+        static::assertSame([Outcome::Failed, null, []], [$outcome->outcome, $outcome->id, $this->journal->entries()]);
+    }
+
     #[Test]
     public function aFailingPostListenerLeavesTheSaveDoneAndIsReported(): void
     {
@@ -35,6 +46,21 @@ abstract class AbstractStagesConformanceTestCase extends AbstractConformanceTest
                     static fn(ExtensionPostFail $failure): string => "{$failure->handle->value} {$failure->point->value} {$failure->name}",
                     $this->host->failures(),
                 ),
+            ],
+        );
+    }
+
+    #[Test]
+    public function aFailingPreListenersDetailIsKeptApartFromItsMessage(): void
+    {
+        $this->bindProbe('fail', 'RecordPreSave');
+        $outcome = $this->host->save(self::SECTION, 1, ['title' => 'New title']);
+
+        static::assertSame(
+            [false, true],
+            [
+                str_contains($outcome->message, 'The probe failed on purpose'),
+                str_contains($outcome->detail, 'The probe failed on purpose'),
             ],
         );
     }
@@ -91,6 +117,30 @@ abstract class AbstractStagesConformanceTestCase extends AbstractConformanceTest
     }
 
     #[Test]
+    public function aNewRecordFiresCreateThenSaveAtEachStage(): void
+    {
+        $this->bindProbe('record', 'RecordPreCreate');
+        $this->bindProbe('record', 'RecordPreSave');
+        $this->bindProbe('record', 'RecordCreate');
+        $this->bindProbe('record', 'RecordSave');
+        $this->bindProbe('record-now', 'RecordPostCreate');
+        $this->bindProbe('record-now', 'RecordPostSave');
+        $this->host->save(self::SECTION, null, ['title' => 'Brand new']);
+
+        static::assertSame(
+            [
+                'RecordPreCreate',
+                'RecordPreSave',
+                'RecordCreate',
+                'RecordSave',
+                'RecordPostCreate:done',
+                'RecordPostSave:done',
+            ],
+            $this->journal->entries(),
+        );
+    }
+
+    #[Test]
     public function aNewRecordIsGivenAnId(): void
     {
         $outcome = $this->host->save(self::SECTION, null, ['title' => 'Brand new']);
@@ -99,6 +149,16 @@ abstract class AbstractStagesConformanceTestCase extends AbstractConformanceTest
             [Outcome::Done, ['title' => 'Brand new']],
             [$outcome->outcome, null === $outcome->id ? null : $this->host->stored(self::SECTION, $outcome->id)],
         );
+    }
+
+    #[Test]
+    public function anExistingRecordFiresOnlySave(): void
+    {
+        $this->bindProbe('record', 'RecordPreCreate');
+        $this->bindProbe('record-now', 'RecordPostCreate');
+        $this->host->save(self::SECTION, 1, ['title' => 'New title']);
+
+        static::assertSame([], $this->journal->entries());
     }
 
     #[Test]
@@ -162,6 +222,17 @@ abstract class AbstractStagesConformanceTestCase extends AbstractConformanceTest
         $this->host->save(self::SECTION, 1, ['title' => 'New title']);
 
         static::assertSame(['title' => 'New title', 'slug' => 'old-title'], $this->host->stored(self::SECTION, 1));
+    }
+
+    #[Test]
+    public function aStoppedCreationTellsBothPostEvents(): void
+    {
+        $this->bindProbe('stop', 'RecordPreSave');
+        $this->bindProbe('record-now', 'RecordPostCreate');
+        $this->bindProbe('record-now', 'RecordPostSave');
+        $this->host->save(self::SECTION, null, ['title' => 'Brand new']);
+
+        static::assertSame(['RecordPostCreate:stopped', 'RecordPostSave:stopped'], $this->journal->entries());
     }
 
     #[Test]

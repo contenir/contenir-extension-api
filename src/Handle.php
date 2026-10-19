@@ -48,6 +48,15 @@ final readonly class Handle
     }
 
     /**
+     * The type sections use for one of the add-on's field types:
+     * <handle>:<name>.
+     */
+    public function fieldType(string $name): string
+    {
+        return "{$this->value}:{$name}";
+    }
+
+    /**
      * The ACL resource needed to apply the add-on's diagnostic fixes:
      * extension.<handle>.fix.
      */

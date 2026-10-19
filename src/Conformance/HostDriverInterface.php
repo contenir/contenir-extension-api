@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Conformance;
 
 use Contenir\Extension\Api\Diagnostic\CheckResult;
+use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\ExtensionInterface;
@@ -115,7 +116,7 @@ interface HostDriverInterface
      *
      * @param array<string, mixed> $values The submitted values
      */
-    public function save(string $section, string|int|null $id, array $values): SaveOutcome;
+    public function save(string $section, string|int|null $id, array $values): ActionResult;
 
     /**
      * Stores a record as it already stands, without firing events.

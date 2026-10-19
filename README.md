@@ -76,7 +76,7 @@ final class NewsletterExtension implements ExtensionInterface
 | Registry method | Adds |
 |---|---|
 | `settingsSection()` | a Site Settings section described as data, with its operations, contributions, save listeners and row hydrators |
-| `fieldType()` | a field type any section can use |
+| `fieldType()` | a field type any section can use, named `<handle>:<name>` (`mailchimp:optin`) so it never clashes |
 | `icons()` | a folder of SVG icons |
 | `listen()` | a listener for an event, which a site binds to its sections in admin.xml; it may narrow the listener's field scope but never widen it |
 | `diagnostic()` | a check in the update check, whose result can offer a one-click fix or a guided fix |
@@ -106,6 +106,13 @@ status change, reorder, move, publish), settings saves, asset uploads and delete
 form entries, cache clears, migration runs, and `ExtensionPostFail`, fired when an add-on's code throws. Only the CMS
 fires these; an add-on fires its own events, under its own `Event\` namespace, through its context's dispatcher.
 
+A new record fires the Create events and then the Save events at each stage, so a listener to `RecordPostSave` hears
+creations too. A chain of events fired from listeners may go `Event\ChainLimit::DEPTH` (8) deep, and an event can't
+recur within its own chain.
+
+When a Pre listener throws, the action stops with a plain message for everyone; the technical summary goes in the
+result's `detail`, which hosts show only to administrators.
+
 ```php
 $registry->listen(
     'sync-subscriber',
@@ -119,8 +126,14 @@ $registry->listen(
 
 Wherever an add-on's code runs, the host gives it an `ExtensionContextInterface`: its handle, the host's services,
 a logger whose entries carry `source: extension.<handle>` (hosts can use `Log\SourceLogger` for that), a clock, the
-site path, a URL resolver for records (`Url\UrlResolverInterface`, given a section and record id), and an event
-dispatcher for the add-on's own events.
+site path, a URL resolver for records (`Url\UrlResolverInterface`, given a section and record id), an event
+dispatcher for the add-on's own events, and its own settings:
+
+```php
+$settings = $context->settings();               // the section named after the handle
+$secret   = $settings->get('secret', '');
+$settings->set(['token' => $token]);            // saves as the settings screen would, firing the settings events
+```
 
 The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
 `Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
@@ -139,6 +152,7 @@ A host proves it implements the API by running the conformance suite: abstract P
 | `AbstractBindingConformanceTestCase` | listeners run only where a site binds them, within their field scope, in the site's order |
 | `AbstractContextConformanceTestCase` | an add-on's context names it, stamps its log entries, and refuses core events and recurring chains |
 | `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST |
+| `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events |
 | `AbstractDiagnosticConformanceTestCase` | checks in the update check; fixes need `extension.<handle>.fix` and re-run the check |
 
 A host's test suite extends each one and implements `createHost()`, returning a fresh

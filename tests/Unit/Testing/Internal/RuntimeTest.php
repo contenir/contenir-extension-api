@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Tests\Unit\Testing\Internal;
 
 use Contenir\Extension\Api\Listener\ListenerInterface;
+use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Testing\FrozenClock;
 use Contenir\Extension\Api\Testing\Internal\Runtime;
 use Contenir\Extension\Api\Testing\MapUrlResolver;
@@ -72,6 +73,7 @@ final class RuntimeTest extends TestCase
             new MapUrlResolver(),
             fn(): EventDispatcherInterface => $this->createStub(EventDispatcherInterface::class),
             static function (): void {},
+            fn(): SettingsInterface => $this->createStub(SettingsInterface::class),
         );
     }
 }

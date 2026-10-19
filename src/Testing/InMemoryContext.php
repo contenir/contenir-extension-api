@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Testing;
 
+use Closure;
 use Contenir\Extension\Api\Context\ExtensionContextInterface;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use Override;
 use Psr\Clock\ClockInterface;
@@ -21,6 +23,8 @@ use Psr\Log\LoggerInterface;
 final readonly class InMemoryContext implements ExtensionContextInterface
 {
     /**
+     * @param Closure(string): SettingsInterface $settings Opens one of the add-on's settings sections
+     *
      * @mago-expect lint:excessive-parameter-list One parameter per part of the context.
      */
     public function __construct(
@@ -31,6 +35,7 @@ final readonly class InMemoryContext implements ExtensionContextInterface
         private string $sitePath,
         private UrlResolverInterface $urls,
         private EventDispatcherInterface $events,
+        private Closure $settings,
     ) {}
 
     #[Override]
@@ -61,6 +66,12 @@ final readonly class InMemoryContext implements ExtensionContextInterface
     public function services(): ContainerInterface
     {
         return $this->services;
+    }
+
+    #[Override]
+    public function settings(?string $section = null): SettingsInterface
+    {
+        return ($this->settings)($section ?? $this->handle->value);
     }
 
     #[Override]

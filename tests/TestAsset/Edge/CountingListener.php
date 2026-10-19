@@ -13,9 +13,12 @@ final class CountingListener implements ListenerInterface
 {
     public int $calls = 0;
 
+    public ?EventInterface $last = null;
+
     #[Override]
     public function handle(EventInterface $event, ExtensionContextInterface $context): void
     {
         ++$this->calls;
+        $this->last = $event;
     }
 }

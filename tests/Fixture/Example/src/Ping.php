@@ -9,11 +9,11 @@ use Contenir\Extension\Api\Handler\WebhookInterface;
 use Contenir\Extension\Api\Handler\WebhookResponse;
 use JsonException;
 use Override;
-use Psr\Container\ContainerExceptionInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 use function hash_equals;
 use function hash_hmac;
+use function is_string;
 
 /**
  * Answers pings from the service, which signs each body with the shared
@@ -26,15 +26,14 @@ final class Ping implements WebhookInterface
     public const string HEADER = 'X-Example-Signature';
 
     /**
-     * The signing secret, or an empty string when there is none.
+     * The signing secret from the add-on's settings, or an empty string when
+     * none is set.
      */
     public static function secret(ExtensionContextInterface $context): string
     {
-        try {
-            return $context->services()->has(Secret::class) ? $context->services()->get(Secret::class)->value : '';
-        } catch (ContainerExceptionInterface) {
-            return '';
-        }
+        $secret = $context->settings()->get('secret', '');
+
+        return is_string($secret) ? $secret : '';
     }
 
     /**

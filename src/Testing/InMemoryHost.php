@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Testing;
 
 use Contenir\Extension\Api\Conformance\HostDriverInterface;
-use Contenir\Extension\Api\Conformance\SaveOutcome;
 use Contenir\Extension\Api\Context\ExtensionContextInterface;
 use Contenir\Extension\Api\Diagnostic\CheckResult;
+use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Catalogue;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
+use Contenir\Extension\Api\Exception\UnknownSettingException;
 use Contenir\Extension\Api\ExtensionInterface;
+use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
+use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Testing\Internal\AddOnEvents;
 use Contenir\Extension\Api\Testing\Internal\AdminHandlers;
 use Contenir\Extension\Api\Testing\Internal\Answers;
@@ -27,6 +30,7 @@ use Contenir\Extension\Api\Testing\Internal\Responder;
 use Contenir\Extension\Api\Testing\Internal\Runtime;
 use Contenir\Extension\Api\Testing\Internal\Saver;
 use Contenir\Extension\Api\Testing\Internal\Services;
+use Contenir\Extension\Api\Testing\Internal\Settings;
 use Contenir\Extension\Api\Testing\Internal\Webhooks;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use LogicException;
@@ -106,6 +110,14 @@ final class InMemoryHost implements HostDriverInterface
             function (ExtensionPostFail $failure): void {
                 $this->dispatcher->dispatch(null, $failure);
             },
+            fn(Handle $handle, string $section): SettingsInterface => new Settings(
+                $this->registration($handle->value)->settingsSections[$section] ?? throw UnknownSettingException::section(
+                    $handle->value,
+                    $section,
+                ),
+                $this->records,
+                $this->dispatcher,
+            ),
         );
         $this->dispatcher = new Dispatcher($this->bindings, $this->runtime);
         $this->checks     = new Checks($this->runtime);
@@ -251,7 +263,7 @@ final class InMemoryHost implements HostDriverInterface
     }
 
     #[Override]
-    public function save(string $section, string|int|null $id, array $values): SaveOutcome
+    public function save(string $section, string|int|null $id, array $values): ActionResult
     {
         return (new Saver($this->records, $this->dispatcher))->save($section, $id, $values);
     }

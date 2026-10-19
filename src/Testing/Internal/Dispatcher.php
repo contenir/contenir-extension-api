@@ -57,7 +57,10 @@ final class Dispatcher
             $failure = $this->call($bound, $event);
             if ($event instanceof PreEventInterface) {
                 if (null !== $failure) {
-                    $event->stop(sprintf('%s could not check this: %s', $bound->handle->value, $failure));
+                    $event->stop(
+                        sprintf('The %s add-on couldn\'t check this, so it didn\'t go ahead', $bound->handle->value),
+                        $failure,
+                    );
                 }
 
                 if ($event->isPropagationStopped()) {

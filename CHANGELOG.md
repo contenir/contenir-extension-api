@@ -8,6 +8,15 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- An add-on reads and writes its own settings through `ExtensionContextInterface::settings()`
+  (`Settings\SettingsInterface`). Writing saves as the settings screen does, firing the settings events.
+  `Exception\UnknownSettingException` is thrown for a section or field the add-on didn't declare.
+- `Event\ActionResult`, what the host reports after an action (it replaces `Conformance\SaveOutcome`), with a
+  `detail` for administrators beside the message everyone sees. `PreEventInterface::stop()` takes the detail too.
+- `Event\ChainLimit::DEPTH`, the depth a chain of events fired from listeners may reach (8).
+- `Conformance\AbstractSettingsConformanceTestCase`, and conformance tests for creating records and for a failing
+  Pre listener's message and detail.
+
 - `ExtensionInterface`, an add-on's entry class, and `Registry`, the one door from an add-on into the CMS. The
   registry checks each declaration as it is made and hands the host everything declared as a `Registration`.
 - `Handle`, an add-on's stable id, with the names it implies: the log source `extension.<handle>`, the ACL resources

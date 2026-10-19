@@ -9,7 +9,6 @@ use Contenir\Extension\Api\Testing\FrozenClock;
 use Contenir\Extension\Api\Testing\InMemoryHost;
 use Contenir\Extension\Example\ExampleExtension;
 use Contenir\Extension\Example\Ping;
-use Contenir\Extension\Example\Secret;
 use DateTimeImmutable;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Override;
@@ -101,11 +100,8 @@ final class BehaviourTest extends TestCase
             $this->http,
             new FrozenClock(new DateTimeImmutable('2026-10-19T09:00:00+00:00')),
         );
-        $this->host->boot(
-            ['example' => new ExampleExtension()],
-            ['example'],
-            [Secret::class => new Secret(self::SHARED)],
-        );
+        $this->host->boot(['example' => new ExampleExtension()], ['example']);
+        $this->host->context('example')->settings()->set(['secret' => self::SHARED]);
     }
 
     private function ping(string $signature): ServerRequestInterface

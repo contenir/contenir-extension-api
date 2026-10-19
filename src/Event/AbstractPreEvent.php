@@ -15,6 +15,8 @@ abstract class AbstractPreEvent implements PreEventInterface
 {
     private ?string $stopMessage = null;
 
+    private string $stopDetail = '';
+
     /**
      * @var array<string, list<string>>
      */
@@ -71,9 +73,19 @@ abstract class AbstractPreEvent implements PreEventInterface
     }
 
     #[Override]
-    public function stop(string $message): void
+    public function stop(string $message, string $detail = ''): void
     {
         $this->stopMessage = $message;
+        $this->stopDetail  = $detail;
+    }
+
+    /**
+     * The administrators' detail of why the action was stopped; empty when
+     * there is none.
+     */
+    public function stopDetail(): string
+    {
+        return $this->stopDetail;
     }
 
     /**

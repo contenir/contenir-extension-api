@@ -9,8 +9,12 @@ use Contenir\Extension\Api\Conformance\Probe\ProbeExtension;
 use Contenir\Extension\Api\Diagnostic\Status;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Event\Extension\FailurePoint;
+use Contenir\Extension\Api\Event\Outcome;
+use Contenir\Extension\Api\Event\Record\RecordPostSave;
+use Contenir\Extension\Api\Event\Settings\SettingsPostSave;
 use Contenir\Extension\Api\Exception\DispatchRefusedException;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
+use Contenir\Extension\Api\Exception\UnknownSettingException;
 use Contenir\Extension\Api\Testing\FrozenClock;
 use Contenir\Extension\Api\Testing\InMemoryHost;
 use Contenir\Extension\Api\Testing\Internal\ListenerFailedException;
@@ -298,6 +302,17 @@ final class InMemoryHostTest extends TestCase
     }
 
     #[Test]
+    public function prefersAFieldsDeclaredDefaultToTheCallersOwn(): void
+    {
+        $settings = $this->host->context('edge')->settings();
+
+        static::assertSame(['medium', 'fallback'], [
+            $settings->get('size', 'large'),
+            $settings->get('mode', 'fallback'),
+        ]);
+    }
+
+    #[Test]
     public function redirectsBackToTheAddOnsSettings(): void
     {
         static::assertSame('/admin/settings/edge', $this->admin('back')->getHeaderLine('Location'));
@@ -342,12 +357,30 @@ final class InMemoryHostTest extends TestCase
     }
 
     #[Test]
+    public function refusesASettingsSectionTheAddOnLacks(): void
+    {
+        $this->expectException(UnknownSettingException::class);
+        $this->expectExceptionMessage('Add-on "edge" has no settings section "edge-more"');
+
+        $this->host->context('edge')->settings('edge-more');
+    }
+
+    #[Test]
     public function refusesToBindAnAddOnThatIsNotLoaded(): void
     {
         $this->expectException(InvalidDeclarationException::class);
         $this->expectExceptionMessage('No add-on "probe" is loaded');
 
         $this->host->bind('article', 'probe', 'record', 'RecordPreSave');
+    }
+
+    #[Test]
+    public function refusesToReadAFieldTheSectionLacks(): void
+    {
+        $this->expectException(UnknownSettingException::class);
+        $this->expectExceptionMessage('Settings section "edge" has no field "colour"');
+
+        $this->host->context('edge')->settings()->get('colour');
     }
 
     #[Test]
@@ -369,6 +402,36 @@ final class InMemoryHostTest extends TestCase
     }
 
     #[Test]
+    public function reportsAStoppedSettingsWriteWithItsMessage(): void
+    {
+        $this->host->bind('edge', 'edge', 'stop', 'SettingsPreSave');
+        $this->host->bind('edge', 'edge', 'count', 'SettingsPostSave');
+        $result = $this->host->context('edge')->settings()->set(['mode' => 'second']);
+
+        static::assertSame(
+            ['Stopped by edge', 'Stopped by edge'],
+            [
+                $result->message,
+                $this->counter->last instanceof SettingsPostSave ? $this->counter->last->reason() : null,
+            ],
+        );
+    }
+
+    #[Test]
+    public function rollsBackASettingsWriteWhoseMainStageFails(): void
+    {
+        $settings = $this->host->context('edge')->settings();
+        $settings->set(['mode' => 'first']);
+        $this->host->bind('edge', 'edge', 'fail-settings', 'SettingsSave');
+        $result = $settings->set(['mode' => 'second']);
+
+        static::assertSame(
+            [Outcome::Failed, 'RuntimeException: Sync listener failed', 'first'],
+            [$result->outcome, $result->message, $settings->get('mode')],
+        );
+    }
+
+    #[Test]
     public function sitsAtSitePathByDefault(): void
     {
         $host = new InMemoryHost($this->http, $this->http, $this->clock);
@@ -378,6 +441,32 @@ final class InMemoryHostTest extends TestCase
             $host->context('edge')->sitePath(),
             $host->context('edge')->urls()->url(new RecordReference('article', 1)),
         ]);
+    }
+
+    #[Test]
+    public function tellsThePostListenerAboutAFailedSettingsWrite(): void
+    {
+        $this->host->bind('edge', 'edge', 'fail-settings', 'SettingsSave');
+        $this->host->bind('edge', 'edge', 'count', 'SettingsPostSave');
+        $this->host->context('edge')->settings()->set(['mode' => 'second']);
+
+        static::assertSame(
+            'RuntimeException: Sync listener failed',
+            $this->counter->last instanceof SettingsPostSave ? $this->counter->last->reason() : null,
+        );
+    }
+
+    #[Test]
+    public function tellsThePostListenerWhyASaveStopped(): void
+    {
+        $this->host->bind('article', 'edge', 'stop', 'RecordPreSave');
+        $this->host->bind('article', 'edge', 'count', 'RecordPostSave');
+        $this->host->save('article', null, ['title' => 'A']);
+
+        static::assertSame(
+            'Stopped by edge',
+            $this->counter->last instanceof RecordPostSave ? $this->counter->last->reason() : null,
+        );
     }
 
     #[Test]

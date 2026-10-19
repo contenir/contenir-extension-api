@@ -7,6 +7,7 @@ namespace Contenir\Extension\Api;
 use Contenir\Extension\Api\Diagnostic\DiagnosticDeclaration;
 use Contenir\Extension\Api\Field\FieldTypeDeclaration;
 use Contenir\Extension\Api\Handler\HandlerDeclaration;
+use Contenir\Extension\Api\Listener\ListenerDeclaration;
 use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Module\Module;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
@@ -26,6 +27,7 @@ final readonly class Registration
      * @param array<string, SettingsSection>       $settingsSections
      * @param array<string, FieldTypeDeclaration>  $fieldTypes
      * @param array<string, DiagnosticDeclaration> $diagnostics
+     * @param list<ListenerDeclaration>            $listeners
      * @param array<string, HandlerDeclaration>    $handlers
      * @param array<string, HandlerDeclaration>    $webhooks
      * @param list<MigrationSet>                   $migrations
@@ -41,6 +43,7 @@ final readonly class Registration
         public array $fieldTypes,
         public ?string $icons,
         public array $diagnostics,
+        public array $listeners,
         public array $handlers,
         public array $webhooks,
         public array $migrations,

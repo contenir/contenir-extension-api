@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Contenir\Extension\Api\Event\Record;
+
+/**
+ * Before a record is saved.
+ *
+ * @api
+ */
+final class RecordPreSave extends AbstractRecordPreEvent {}

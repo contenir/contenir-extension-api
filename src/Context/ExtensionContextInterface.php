@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Context;
 
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Url\UrlResolverInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Container\ContainerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -21,6 +23,14 @@ interface ExtensionContextInterface
      * The time, for code that needs it.
      */
     public function clock(): ClockInterface;
+
+    /**
+     * Fires the add-on's own events, under its Event\ namespace, to the
+     * listeners sites have bound. Dispatching a core event throws: only the
+     * CMS fires those. Each dispatch counts towards the chain's depth, and the
+     * same event for the same subject cannot recur within one chain.
+     */
+    public function events(): EventDispatcherInterface;
 
     /**
      * The add-on the code belongs to.
@@ -42,4 +52,9 @@ interface ExtensionContextInterface
      * The root of the site being managed.
      */
     public function sitePath(): string;
+
+    /**
+     * Where records appear on the public site.
+     */
+    public function urls(): UrlResolverInterface;
 }

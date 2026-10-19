@@ -29,5 +29,13 @@ adheres to [Semantic Versioning](https://semver.org/).
 - `Log\SourceLogger`, which stamps an add-on's log entries with `extension.<handle>`, and `Url\UrlResolverInterface`
   with `Url\RecordReference`, for a record's public address.
 - The context gives add-on code a URL resolver and a PSR-14 dispatcher for the add-on's own events.
+- The conformance suite (`Conformance\Abstract*ConformanceTestCase`): abstract PHPUnit test cases a host extends,
+  through a `Conformance\HostDriverInterface` adapter, to prove it loads add-ons, runs the three stages, honours
+  bindings, gives add-ons their context, answers handlers and webhooks, and runs checks and fixes as the API says. They
+  drive a probe add-on (`Conformance\Probe\*`) that records what it saw.
+- `Testing\InMemoryHost`, a host held in memory that passes the conformance suite, for testing add-ons without a CMS,
+  with `Testing\FrozenClock`, `Testing\MemoryLogger`, `Testing\ServiceMap` and `Testing\MapUrlResolver`.
+- `Exception\DispatchRefusedException`, thrown when an add-on fires a core event, or an event that would recur in its
+  chain or make the chain too deep.
 - The legacy CMS's operation contracts and `IconPathProviderInterface`, moved here unchanged in shape so the CMS can
   alias its old names to them for one release.

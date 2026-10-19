@@ -127,6 +127,54 @@ The operation contracts the legacy CMS ships today (`Operation\Operation`, `Oper
 `IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for
 one release.
 
+## Conformance suite
+
+A host proves it implements the API by running the conformance suite: abstract PHPUnit test cases in
+`Contenir\Extension\Api\Conformance\`, each covering one part of the plan.
+
+| Test case | Proves |
+|---|---|
+| `AbstractLoadingConformanceTestCase` | only enabled add-ons load, each once; one that fails to register is skipped and reported, and the rest still load |
+| `AbstractStagesConformanceTestCase` | the three stages of a save: Pre changes values, stops or holds a save; the main stage rolls back on failure; Post runs after, whatever happened, in the background by default |
+| `AbstractBindingConformanceTestCase` | listeners run only where a site binds them, within their field scope, in the site's order |
+| `AbstractContextConformanceTestCase` | an add-on's context names it, stamps its log entries, and refuses core events and recurring chains |
+| `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST |
+| `AbstractDiagnosticConformanceTestCase` | checks in the update check; fixes need `extension.<handle>.fix` and re-run the check |
+
+A host's test suite extends each one and implements `createHost()`, returning a fresh
+`Conformance\HostDriverInterface`: a small adapter that boots the host with the suite's probe add-on, saves records,
+binds listeners, answers requests and runs checks the way the CMS itself would.
+
+```php
+final class LegacyStagesTest extends AbstractStagesConformanceTestCase
+{
+    protected function createHost(): HostDriverInterface
+    {
+        return new LegacyHostDriver(/* a fresh test site */);
+    }
+}
+```
+
+The suite needs PHPUnit 11, which a host already has in its dev dependencies.
+
+## In-memory host
+
+`Testing\InMemoryHost` is a host with no CMS behind it, holding records, bindings and logs in memory. It passes the
+conformance suite, so add-ons can be tested against the API without either CMS running:
+
+```php
+$http = new Psr17Factory();
+$host = new InMemoryHost($http, $http, new FrozenClock(new DateTimeImmutable('2026-10-19 09:00')));
+$host->boot(['newsletter' => new NewsletterExtension()], ['newsletter'], [ListClient::class => $fakeClient]);
+$host->bind('member', 'newsletter', 'sync-subscriber', 'RecordPostSave', ['email']);
+
+$host->save('member', 1, ['email' => 'ann@example.com']);
+$host->runBackground();
+```
+
+It takes any PSR-17 factories for the requests and responses handlers see; `Testing\FrozenClock`,
+`Testing\MemoryLogger`, `Testing\ServiceMap` and `Testing\MapUrlResolver` are there for tests too.
+
 ## Status
 
 This package is phase 3 of the Contenir extensions plan. It is not tagged yet: hosts and add-ons follow `0.1.x-dev`

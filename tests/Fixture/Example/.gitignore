@@ -1,0 +1,5 @@
+/.phpunit.cache/
+/clover.xml
+/vendor/
+/infection.log
+/summary.log

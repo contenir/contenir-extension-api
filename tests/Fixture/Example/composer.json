@@ -1,0 +1,54 @@
+{
+    "name": "contenir-extension/example",
+    "description": "The example add-on for Contenir CMS: a settings section, a listener, a signed webhook and a check, built against contenir/extension-api alone.",
+    "type": "contenir-extension",
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
+        "contenir/extension-api": "^0.1",
+        "psr/log": "^2.0 || ^3.0"
+    },
+    "require-dev": {
+        "contenir/contenir-qa-tools": "0.1.x-dev",
+        "infection/infection": "^0.34.1",
+        "nyholm/psr7": "^1.8.2",
+        "phpunit/phpunit": "^11.5.42"
+    },
+    "autoload": {
+        "psr-4": {
+            "Contenir\\Extension\\Example\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Contenir\\Extension\\Example\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "boundary": "extension-boundary",
+        "cs-check": [
+            "mago format --check",
+            "mago lint",
+            "mago guard"
+        ],
+        "static-analysis": "mago analyze",
+        "test": "phpunit --colors=always --testsuite unit",
+        "test-integration": "phpunit --colors=always --testsuite integration",
+        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
+        "mutation-test": "infection"
+    },
+    "extra": {
+        "contenir": {
+            "handle": "example",
+            "extension": "Contenir\\Extension\\Example\\ExampleExtension"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

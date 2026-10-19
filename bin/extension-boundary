@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Contenir\Extension\Api\Boundary\Command;
+
+$autoload = $GLOBALS['_composer_autoload_path'] ?? null;
+foreach ([$autoload, __DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $candidate) {
+    if (is_string($candidate) && is_file($candidate)) {
+        require $candidate;
+        break;
+    }
+}
+
+$command = new Command(
+    static function (string $line): void {
+        fwrite(STDOUT, $line . PHP_EOL);
+    },
+    static function (string $line): void {
+        fwrite(STDERR, $line . PHP_EOL);
+    },
+);
+
+exit($command->run((string) getcwd(), array_slice($argv, 1)));

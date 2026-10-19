@@ -175,6 +175,30 @@ $host->runBackground();
 It takes any PSR-17 factories for the requests and responses handlers see; `Testing\FrozenClock`,
 `Testing\MemoryLogger`, `Testing\ServiceMap` and `Testing\MapUrlResolver` are there for tests too.
 
+## The boundary
+
+An add-on may use PHP itself, this API, the PSR interfaces above, its own code, the libraries its composer.json
+requires, and only the `Event\` and `Api\` namespaces of other add-ons it requires (plan section 12, P7). It may
+not require either CMS, ZF1, Laminas MVC or Mezzio, and its code may not use this package's test tooling.
+
+`vendor/bin/extension-boundary` writes those rules from the add-on's composer.json to `mago-boundary.toml`, which
+the add-on's `mago.toml` extends, so `mago guard` enforces them in CI:
+
+```toml
+extends = ["vendor/contenir/contenir-qa-tools/mago.toml", "mago-boundary.toml"]
+```
+
+```bash
+vendor/bin/extension-boundary
+```
+
+`--check` says whether the file is current without writing it. An add-on's test suite extends
+`Conformance\AbstractAddOnConformanceTestCase` once, which checks that the add-on registers cleanly, that its
+boundary file is current, and that every public webhook refuses a request it cannot verify (P1).
+
+`tests/Fixture/Example` is a complete example add-on: a settings section with a masked secret, a listener, a signed
+webhook and a check, with its boundary file, tests and CI workflow.
+
 ## Status
 
 This package is phase 3 of the Contenir extensions plan. It is not tagged yet: hosts and add-ons follow `0.1.x-dev`

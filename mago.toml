@@ -1,4 +1,4 @@
-extends = "vendor/contenir/contenir-qa-tools/mago.toml"
+extends = ["vendor/contenir/contenir-qa-tools/mago.toml", "tests/Fixture/Example/mago-boundary.toml"]
 php-version = "8.3.0"
 
 [source]
@@ -16,3 +16,8 @@ parentheses-around-new-in-member-access = true
 too-many-methods = { exclude = ["tests/", "src/Conformance/"] }
 [analyzer]
 excludes = ["tests"]
+
+# This package may use anything; tests/Fixture/Example/mago-boundary.toml holds the example add-on to its boundary.
+[[guard.perimeter.rules]]
+namespace = 'Contenir\Extension\Api\'
+permit = ['@all']

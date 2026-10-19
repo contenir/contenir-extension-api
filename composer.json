@@ -41,9 +41,14 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Contenir\\Extension\\Api\\Tests\\": "tests/"
+            "Contenir\\Extension\\Api\\Tests\\": "tests/",
+            "Contenir\\Extension\\Example\\": "tests/Fixture/Example/src/",
+            "Contenir\\Extension\\Example\\Tests\\": "tests/Fixture/Example/tests/"
         }
     },
+    "bin": [
+        "bin/extension-boundary"
+    ],
     "scripts": {
         "check": [
             "@cs-check",

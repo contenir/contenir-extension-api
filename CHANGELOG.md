@@ -37,5 +37,12 @@ adheres to [Semantic Versioning](https://semver.org/).
   with `Testing\FrozenClock`, `Testing\MemoryLogger`, `Testing\ServiceMap` and `Testing\MapUrlResolver`.
 - `Exception\DispatchRefusedException`, thrown when an add-on fires a core event, or an event that would recur in its
   chain or make the chain too deep.
+- The add-on boundary (`Boundary\*`) and `vendor/bin/extension-boundary`, which writes an add-on's
+  `mago-boundary.toml` from its composer.json for `mago guard` to enforce: the API, the PSR interfaces, its own code,
+  the libraries it requires, and only the `Event\` and `Api\` namespaces of other add-ons. Requiring a CMS, ZF1,
+  Laminas MVC or Mezzio is refused, and the API's test tooling stays out of add-on code.
+- `Conformance\AbstractAddOnConformanceTestCase`, which an add-on extends to prove it registers cleanly, keeps its
+  boundary file current, and has every public webhook refuse a request it cannot verify.
+- An example add-on (`tests/Fixture/Example`) with its boundary, tests and CI workflow.
 - The legacy CMS's operation contracts and `IconPathProviderInterface`, moved here unchanged in shape so the CMS can
   alias its old names to them for one release.

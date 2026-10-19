@@ -28,8 +28,8 @@ final class SmallPartsTest extends TestCase
     #[Test]
     public function aMapResolvesTheUrlsItHolds(): void
     {
-        $urls = (new MapUrlResolver(['article:1' => 'https://example.com/one']))
-            ->with(new RecordReference('article', 2), 'https://example.com/two');
+        $map  = new MapUrlResolver(['article:1' => 'https://example.com/one']);
+        $urls = $map->with(new RecordReference('article', 2), 'https://example.com/two');
 
         static::assertSame(
             ['https://example.com/one', 'https://example.com/two', null],

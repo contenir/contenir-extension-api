@@ -10,7 +10,6 @@ use Contenir\Extension\Api\Event\EventInterface;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Field\FieldTypeDeclaration;
 use Contenir\Extension\Api\Field\FieldTypeInterface;
-use Contenir\Extension\Api\Form\FieldType;
 use Contenir\Extension\Api\Handler\HandlerDeclaration;
 use Contenir\Extension\Api\Handler\HandlerInterface;
 use Contenir\Extension\Api\Handler\WebhookInterface;
@@ -185,21 +184,21 @@ final class Registry
     }
 
     /**
-     * A field type sections can use by $type.
+     * A field type any section can use. Sections name it with the add-on's
+     * handle in front, as <handle>:<name> (mailchimp:optin), so add-ons'
+     * types never clash with each other's or with the built-in ones.
      *
      * @param class-string<FieldTypeInterface> $class
      *
-     * @throws InvalidDeclarationException When the name is malformed, built in or taken, or the class is not a field type.
+     * @throws InvalidDeclarationException When the name is malformed or taken, or the class is not a field type.
      */
-    public function fieldType(string $type, string $class): void
+    public function fieldType(string $name, string $class): void
     {
-        Names::name('Field type', $type);
-        if (null !== FieldType::tryFrom($type)) {
-            throw InvalidDeclarationException::because(sprintf('Field type "%s" is built in', $type));
-        }
+        $type = $this->handle->fieldType(Names::name('Field type', $name));
 
         $this->fieldTypes[$this->free('field type', $type, $this->fieldTypes)] = new FieldTypeDeclaration(
             $type,
+            $name,
             Names::implementing('Field type', $class, FieldTypeInterface::class),
         );
     }

@@ -13,6 +13,8 @@ adheres to [Semantic Versioning](https://semver.org/).
   `Exception\UnknownSettingException` is thrown for a section or field the add-on didn't declare.
 - `Event\ActionResult`, what the host reports after an action (it replaces `Conformance\SaveOutcome`), with a
   `detail` for administrators beside the message everyone sees. `PreEventInterface::stop()` takes the detail too.
+- An add-on's field types are named `<handle>:<name>` (`mailchimp:optin`), so they never clash with each other's or
+  the built-in types; `Registry::fieldType()` takes the name and adds the handle.
 - `Event\ChainLimit::DEPTH`, the depth a chain of events fired from listeners may reach (8).
 - `Conformance\AbstractSettingsConformanceTestCase`, and conformance tests for creating records and for a failing
   Pre listener's message and detail.

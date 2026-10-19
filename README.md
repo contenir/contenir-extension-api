@@ -76,7 +76,7 @@ final class NewsletterExtension implements ExtensionInterface
 | Registry method | Adds |
 |---|---|
 | `settingsSection()` | a Site Settings section described as data, with its operations, contributions, save listeners and row hydrators |
-| `fieldType()` | a field type any section can use |
+| `fieldType()` | a field type any section can use, named `<handle>:<name>` (`mailchimp:optin`) so it never clashes |
 | `icons()` | a folder of SVG icons |
 | `listen()` | a listener for an event, which a site binds to its sections in admin.xml; it may narrow the listener's field scope but never widen it |
 | `diagnostic()` | a check in the update check, whose result can offer a one-click fix or a guided fix |

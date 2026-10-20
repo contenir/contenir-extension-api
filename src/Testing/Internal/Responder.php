@@ -34,6 +34,18 @@ final readonly class Responder
         private StreamFactoryInterface $streams,
     ) {}
 
+    /**
+     * A template or fragment result always names its template; this is for the type checker.
+     *
+     * @throws LogicException Always.
+     *
+     * @codeCoverageIgnore Unreachable: HandlerResult's named constructors always set the template a kind needs.
+     */
+    private static function none(): never
+    {
+        throw new LogicException('A template result names no template');
+    }
+
     public function body(int $status, string $contentType, string $body): ResponseInterface
     {
         return $this->status($status)
@@ -65,11 +77,16 @@ final readonly class Responder
                 $result->url ?? "/admin/settings/{$handle->value}",
             ),
             ResultKind::Screen   => $this->body(200, 'text/plain', $result->screen->title ?? ''),
-            ResultKind::Template => $this->body(200, 'text/html', $this->template($result->template, $registration)),
-            ResultKind::Fragment => $this->body($result->status, 'text/html', $this->template(
-                $result->fragment,
-                $registration,
-            )),
+            ResultKind::Template => $this->body(
+                200,
+                'text/html',
+                $this->template($result->template ?? self::none(), $registration),
+            ),
+            ResultKind::Fragment => $this->body(
+                $result->status,
+                'text/html',
+                $this->template($result->fragment ?? self::none(), $registration),
+            ),
         };
     }
 
@@ -82,13 +99,10 @@ final readonly class Responder
      * @throws LogicException When the add-on has no templates or no such template.
      * @throws Throwable      What the template throws.
      */
-    private function template(Template|Fragment|null $template, Registration $registration): string
+    private function template(Template|Fragment $template, Registration $registration): string
     {
         $templates = $registration->module->templates
             ?? throw new LogicException(sprintf('Add-on "%s" has no templates', $registration->handle->value));
-        if (null === $template) {
-            throw new LogicException('A template result names no template');
-        }
 
         return (new InMemoryTemplates($registration->handle, $templates))->render($template->name, $template->values);
     }

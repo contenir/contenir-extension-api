@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-20
+
+### Added
+
+- Tabs on described screens: `Screen::$tabs`, a list of `Handler\Tab`s (a label, one of the add-on's handlers, a
+  query, whether it is current, and an icon). The host draws them under the page header, as the theme's underline
+  tabs, so the screens about one record (a form's entries, fields and settings) share a row of them. A screen
+  without tabs is drawn as before.
+
 ## [0.3.0] - 2026-10-20
 
 ### Added

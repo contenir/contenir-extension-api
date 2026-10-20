@@ -154,7 +154,8 @@ A module's handlers are guarded by its area's ACL resource (`forms` above), or b
 (`forms.exports.scheduled`), as the host's own screens are, so a role allowed the area keeps its screens.
 
 A handler answers with a described screen where it can, and with one of the module's templates where it can't
-(decision M1):
+(decision M1). A described screen may carry a row of `Handler\Tab`s under its header, leading to the other screens
+about the same record:
 
 ```php
 return HandlerResult::template('fields', 'Fields', ['form' => $form]);

@@ -12,7 +12,8 @@ use Contenir\Extension\Api\Operation\Operation;
 /**
  * A screen described as data, which the host draws inside the dashboard
  * layout: a title and introduction, then a form, a table and operations,
- * each optional.
+ * each optional, and a row of tabs under the header leading to the other
+ * screens about the same record.
  *
  * @api
  */
@@ -20,8 +21,11 @@ final readonly class Screen
 {
     /**
      * @param list<Operation> $operations
+     * @param list<Tab>       $tabs
      *
      * @throws InvalidDeclarationException When the title is empty.
+     *
+     * @mago-expect lint:excessive-parameter-list A screen is described with named arguments; all but the title are optional.
      */
     public function __construct(
         public string $title,
@@ -29,6 +33,7 @@ final readonly class Screen
         public ?Form $form = null,
         public ?Table $table = null,
         public array $operations = [],
+        public array $tabs = [],
     ) {
         Names::text('A screen title', $title);
     }

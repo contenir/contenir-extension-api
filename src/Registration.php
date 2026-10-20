@@ -10,6 +10,7 @@ use Contenir\Extension\Api\Handler\HandlerDeclaration;
 use Contenir\Extension\Api\Listener\ListenerDeclaration;
 use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Module\Module;
+use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Script\ScriptDeclaration;
 use Contenir\Extension\Api\Settings\SettingsSection;
@@ -34,6 +35,7 @@ final readonly class Registration
      * @param array<string, ScheduleDeclaration>   $schedules
      * @param array<string, ScriptDeclaration>     $scripts
      * @param array<string, Handle>                $dependencies
+     * @param array<string, PanelDeclaration>      $panels
      *
      * @mago-expect lint:excessive-parameter-list One parameter per extension point.
      */
@@ -51,5 +53,6 @@ final readonly class Registration
         public array $scripts,
         public Module $module,
         public array $dependencies,
+        public array $panels = [],
     ) {}
 }

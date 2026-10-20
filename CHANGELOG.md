@@ -4,7 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] - 2026-10-19
+## [0.2.0] - 2026-10-20
+
+### Added
+
+- `Registry::panel()`: a panel beside one record on its view and edit screens (P9). The panel class implements
+  `Panel\RecordPanelInterface`, gets the record as a `Panel\RecordView` (section, id and stored values) and returns a
+  `Panel\Panel` (a title, paragraphs of plain text and `Panel\Link`s), or null to show nothing. The host escapes all
+  of it. A site binds a panel to the sections it shows on. `Registration::$panels` lists them, and
+  `FailurePoint::Panel` names a panel that throws.
+
+### Changed
+
+- Public webhooks are mounted at `/api/extension/<handle>/<name>`, under the `/api` prefix sites send to the CMS,
+  where they were at `/extension/<handle>/<name>`. The handler conformance case asks for the new path.
+
+## [0.1.0] - 2026-10-19
 
 ### Added
 

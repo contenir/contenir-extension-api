@@ -7,6 +7,7 @@ namespace Contenir\Extension\Api\Tests\Unit\Handler;
 use Contenir\Extension\Api\Handler\HandlerResult;
 use Contenir\Extension\Api\Handler\ResultKind;
 use Contenir\Extension\Api\Handler\Screen;
+use Contenir\Extension\Api\Handler\Tab;
 use Contenir\Extension\Api\Handler\Template;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -57,6 +58,15 @@ final class HandlerResultTest extends TestCase
             [ResultKind::Template, new Template('fields', 'Fields', ['form' => 3])],
             [$result->kind, $result->template],
         );
+    }
+
+    #[Test]
+    public function answersWithATemplateAndItsTabs(): void
+    {
+        $tabs   = [new Tab('Fields', 'fields', ['form' => 3], current: true)];
+        $result = HandlerResult::template('fields', 'Fields', ['form' => 3], $tabs);
+
+        static::assertEquals(new Template('fields', 'Fields', ['form' => 3], $tabs), $result->template);
     }
 
     #[Test]

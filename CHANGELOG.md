@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - 2026-10-21
+
+### Added
+
+- Tabs on template screens: `Template::$tabs`, given as `HandlerResult::template($name, $title, $values, $tabs)`. The
+  host draws them under the header as it does a described screen's, so a module's template screens (a form's fields
+  editor or preview) share a row of tabs with its described ones. A template without tabs is drawn as before.
+
 ## [0.5.0] - 2026-10-20
 
 ### Added

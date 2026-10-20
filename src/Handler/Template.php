@@ -15,7 +15,9 @@ use Contenir\Extension\Api\Internal\Names;
  * $name is the template's path within the module's templates folder, without
  * its .phtml extension: "fields" or "notification/editor". The template runs
  * with two variables: $values, as given here, and $view, the host's
- * Module\TemplateHelpersInterface.
+ * Module\TemplateHelpersInterface. Its $tabs are drawn under the header as a
+ * described screen's are, so a module's template screens can share a row of
+ * tabs with its described ones.
  *
  * @api
  */
@@ -23,6 +25,7 @@ final readonly class Template
 {
     /**
      * @param array<string, mixed> $values
+     * @param list<Tab>            $tabs
      *
      * @throws InvalidDeclarationException When the name is malformed or the title empty.
      */
@@ -30,6 +33,7 @@ final readonly class Template
         public string $name,
         public string $title,
         public array $values = [],
+        public array $tabs = [],
     ) {
         Names::template($name);
         Names::text('A template title', $title);

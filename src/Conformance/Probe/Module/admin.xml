@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<admin>
+    <probes>
+        <title>Probes</title>
+        <icon>forms</icon>
+        <handler>page</handler>
+        <category>
+            <notes>
+                <title>Notes</title>
+                <section>
+                    <list>
+                        <title>All notes</title>
+                        <handler>notes</handler>
+                    </list>
+                </section>
+            </notes>
+        </category>
+    </probes>
+</admin>

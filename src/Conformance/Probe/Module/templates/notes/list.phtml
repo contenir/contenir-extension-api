@@ -1,0 +1,11 @@
+<?php
+/**
+ * @var array{notes: list<string>} $values
+ * @var \Contenir\Extension\Api\Module\TemplateHelpersInterface $view
+ */
+?>
+<ul class="probe-notes">
+<?php foreach ($values['notes'] as $note): ?>
+    <li><?= $view->escape($note) ?></li>
+<?php endforeach ?>
+</ul>

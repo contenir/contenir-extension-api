@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-20
+
+### Added
+
+- Module templates (decision M1): `HandlerResult::template($name, $title, $values)` answers with one of a module's
+  templates, as `ResultKind::Template` holding a `Handler\Template`. The host draws the dashboard around it with the
+  title in its header. The template runs with `$values` and `$view`, a `Module\TemplateHelpersInterface` (escape,
+  handler and asset URLs, the form token, icons and other templates), so it never needs the host's view helpers. A
+  handler of an add-on that is not a module fails if it answers with a template.
+- `Registry::menu()`: a module's `Module\MenuInterface` lists what its section menu shows beyond its admin.xml, as
+  `Module\MenuGroup`s of `Module\MenuItem`s leading to its handlers. `FailurePoint::Menu` names a menu that throws.
+- `Handler\Privilege`: `Registry::handler()` takes the privilege a handler needs whatever the method, such as Delete,
+  so a module keeps the permissions its screens had. Without one, a handler needs View to read and Update for
+  anything else, as before. `HandlerDeclaration::privilegeFor()` says which a request needs.
+- `Conformance\AbstractModuleConformanceTestCase` and its probe module. A grant given to
+  `HostDriverInterface::handle()` may name one privilege as `<resource>:<privilege>`.
+- `Testing\InMemoryTemplates` draws a module's templates in its tests, and `InMemoryHost::menu()` lists its menu.
+
+### Changed
+
+- A module's handlers are guarded by its area's ACL resource, or by the section whose `<handler>` names them in its
+  admin.xml, instead of `extension.<handle>.<name>`, so a role allowed the area keeps its screens.
+- The package requires the DOM extension, which the in-memory host uses to read a module's admin.xml.
+
 ## [0.2.0] - 2026-10-20
 
 ### Added

@@ -11,7 +11,7 @@ PSR-14 events and PSR-20 time.
 
 ## Requirements
 
-- PHP 8.3, 8.4 or 8.5
+- PHP 8.3, 8.4 or 8.5, with the DOM extension (the in-memory host reads a module's admin.xml)
 
 ## An add-on
 
@@ -80,13 +80,13 @@ final class NewsletterExtension implements ExtensionInterface
 | `icons()` | a folder of SVG icons |
 | `listen()` | a listener for an event, which a site binds to its sections in admin.xml; it may narrow the listener's field scope but never widen it |
 | `diagnostic()` | a check in the update check, whose result can offer a one-click fix or a guided fix |
-| `handler()` | an admin request handler at `/admin/extension/<handle>/<name>`, behind the ACL resource `extension.<handle>.<name>` |
+| `handler()` | an admin request handler at `/admin/extension/<handle>/<name>`, behind the ACL resource `extension.<handle>.<name>`, needing the `Handler\Privilege` it declares, or else View to read and Update for anything else |
 | `webhook()` | a public handler at `/api/extension/<handle>/<name>`, which verifies its caller's signature or token before it runs |
 | `migrations()` | tables of the add-on's own, `ext_<handle>_*`, on the site's database or the CMS's |
 | `schedule()` | recurring work for the host's job runner, every so many minutes or on a cron expression |
 | `script()` | scripts for public pages, each with its placement and consent category |
 | `panel()` | a panel beside one record on its view and edit screens (its section, id and values in, a title, text and links out), shown on the sections a site binds it to; the host escapes everything in it |
-| `module()`, `assets()`, `component()`, `templates()` | an admin area of the add-on's own, with its scripts, styles and dashboard components; only a module may ship templates |
+| `module()`, `assets()`, `component()`, `templates()`, `menu()` | an admin area of the add-on's own, with its scripts, styles and dashboard components; only a module may ship templates or a section menu (see Modules) |
 | `dependsOn()` | another add-on this one uses, through that add-on's `Event\` and `Api\` namespaces only |
 
 A host reads everything declared back with `Registry::registration()`.
@@ -123,6 +123,52 @@ $registry->listen(
 );
 ```
 
+## Modules
+
+A module is an add-on with an admin area of its own (plan section 10). `module()` names an admin.xml fragment
+holding one area of categories and sections. A site's own admin.xml can still rename, reorder or hide it. An area or
+a section names one of the module's handlers with `<handler>` to draw its screen:
+
+```xml
+<admin>
+    <forms>
+        <title>Forms</title>
+        <icon>forms</icon>
+        <handler>forms</handler>
+        <category>
+            <exports>
+                <title>Exports</title>
+                <section>
+                    <scheduled>
+                        <title>Scheduled exports</title>
+                        <handler>exports</handler>
+                    </scheduled>
+                </section>
+            </exports>
+        </category>
+    </forms>
+</admin>
+```
+
+A module's handlers are guarded by its area's ACL resource (`forms` above), or by the section that names them
+(`forms.exports.scheduled`), as the host's own screens are, so a role allowed the area keeps its screens.
+
+A handler answers with a described screen where it can, and with one of the module's templates where it can't
+(decision M1):
+
+```php
+return HandlerResult::template('fields', 'Fields', ['form' => $form]);
+```
+
+The host draws the dashboard around it, with the title in its header and breadcrumb. The template is
+`<templates>/fields.phtml` and runs with two variables: `$values`, as the handler passed them, and `$view`, a
+`Module\TemplateHelpersInterface` for escaping, URLs to the module's handlers and assets, the form token, icons and
+other templates. It uses the dashboard theme's markup and classes, never the host's own view helpers, so it draws
+the same in any host. `Testing\InMemoryTemplates` draws a template on its own in a module's tests.
+
+`menu()` names a `Module\MenuInterface` listing what the area's section menu shows beyond its admin.xml, such as the
+forms in the form builder's tables. Each `Module\MenuItem` leads to one of the module's handlers.
+
 ## Host context
 
 Wherever an add-on's code runs, the host gives it an `ExtensionContextInterface`: its handle, the host's services,
@@ -153,6 +199,7 @@ A host proves it implements the API by running the conformance suite: abstract P
 | `AbstractBindingConformanceTestCase` | listeners run only where a site binds them, within their field scope, in the site's order |
 | `AbstractContextConformanceTestCase` | an add-on's context names it, stamps its log entries, and refuses core events and recurring chains |
 | `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST |
+| `AbstractModuleConformanceTestCase` | a module's handlers answer with its templates, values escaped, behind its area's or section's resource and the privilege each declares |
 | `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events |
 | `AbstractDiagnosticConformanceTestCase` | checks in the update check; fixes need `extension.<handle>.fix` and re-run the check |
 
@@ -187,7 +234,8 @@ $host->save('member', 1, ['email' => 'ann@example.com']);
 $host->runBackground();
 ```
 
-It takes any PSR-17 factories for the requests and responses handlers see; `Testing\FrozenClock`,
+`menu()` lists what a module's section menu shows for a request. It takes any PSR-17 factories for the requests
+and responses handlers see; `Testing\FrozenClock`,
 `Testing\MemoryLogger`, `Testing\ServiceMap` and `Testing\MapUrlResolver` are there for tests too.
 
 ## The boundary

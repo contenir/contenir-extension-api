@@ -78,7 +78,9 @@ interface HostDriverInterface
 
     /**
      * Answers a request to an admin handler or a public webhook, for someone
-     * holding the ACL resources in $grants.
+     * holding the ACL resources in $grants. A grant naming a resource alone
+     * holds every privilege on it; "<resource>:<privilege>" holds only that
+     * privilege (a Handler\Privilege value).
      *
      * @param list<string> $grants
      */

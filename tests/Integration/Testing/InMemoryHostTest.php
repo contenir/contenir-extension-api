@@ -153,6 +153,15 @@ final class InMemoryHostTest extends TestCase
     }
 
     #[Test]
+    public function failsAHandlerAnsweringWithATemplateWhenItsAddOnIsNotAModule(): void
+    {
+        static::assertSame([500, [FailurePoint::Handler]], [
+            $this->admin('stray-template')->getStatusCode(),
+            $this->points(),
+        ]);
+    }
+
+    #[Test]
     public function failsAHandlerWhoseJsonCannotBeEncoded(): void
     {
         static::assertSame([500, [FailurePoint::Handler]], [

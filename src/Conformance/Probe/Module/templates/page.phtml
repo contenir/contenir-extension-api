@@ -1,0 +1,14 @@
+<?php
+/**
+ * The probe module's home: a greeting naming $values['name'], escaped, then
+ * the list partial.
+ *
+ * @var array{name: string, notes: list<string>} $values
+ * @var \Contenir\Extension\Api\Module\TemplateHelpersInterface $view
+ */
+?>
+<div class="card">
+    <p class="probe-greeting">Hello <?= $view->escape($values['name']) ?></p>
+    <?= $view->render('notes/list', ['notes' => $values['notes']]) ?>
+    <a href="<?= $view->escape($view->url('notes', ['page' => 2])) ?>">More</a>
+</div>

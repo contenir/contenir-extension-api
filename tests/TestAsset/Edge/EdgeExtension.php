@@ -42,6 +42,7 @@ final class EdgeExtension implements ExtensionInterface
         $registry->handler('back', BackHandler::class);
         $registry->handler('screen', ScreenHandler::class);
         $registry->handler('bad-json', BadJsonHandler::class);
+        $registry->handler('stray-template', StrayTemplateHandler::class);
         $registry->webhook('explode', ExplodingWebhook::class);
         $registry->diagnostic('explode', ExplodingCheck::class);
         $registry->diagnostic('broken-fix', BrokenFixCheck::class);

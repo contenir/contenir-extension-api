@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Conformance;
 
 use Contenir\Extension\Api\Conformance\Probe\BrokenServiceInterface;
-use Contenir\Extension\Api\Conformance\Probe\NoteServiceInterface;
 use Contenir\Extension\Api\Conformance\Probe\ProbeExtension;
+use Contenir\Extension\Api\Conformance\Probe\ProbeServiceInterface;
 use Contenir\Extension\Api\Conformance\Probe\RivalExtension;
 use Contenir\Extension\Api\Conformance\Probe\WrongServiceInterface;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
@@ -32,7 +32,7 @@ abstract class AbstractServiceConformanceTestCase extends AbstractConformanceTes
     {
         $this->host->boot([ProbeExtension::HANDLE => new ProbeExtension($this->journal)], []);
 
-        static::assertNull($this->host->provided(NoteServiceInterface::class));
+        static::assertNull($this->host->provided(ProbeServiceInterface::class));
     }
 
     #[Test]
@@ -62,9 +62,7 @@ abstract class AbstractServiceConformanceTestCase extends AbstractConformanceTes
     {
         $this->bootProbe();
 
-        $service = $this->host->provided(NoteServiceInterface::class);
-
-        static::assertSame(['probe', 'none yet'], [$service?->madeBy(), $service?->note()]);
+        static::assertSame('probe', $this->host->provided(ProbeServiceInterface::class)?->madeBy());
     }
 
     #[Test]
@@ -73,8 +71,8 @@ abstract class AbstractServiceConformanceTestCase extends AbstractConformanceTes
         $this->bootProbe();
 
         static::assertSame(
-            $this->host->provided(NoteServiceInterface::class),
-            $this->host->provided(NoteServiceInterface::class),
+            $this->host->provided(ProbeServiceInterface::class),
+            $this->host->provided(ProbeServiceInterface::class),
         );
     }
 
@@ -102,12 +100,12 @@ abstract class AbstractServiceConformanceTestCase extends AbstractConformanceTes
                 'probe',
                 [
                     'Add-on "rival" also provides '
-                        . NoteServiceInterface::class
+                        . ProbeServiceInterface::class
                         . ', but add-on "probe" loaded first and provides it',
                 ],
             ],
             [
-                $this->host->provided(NoteServiceInterface::class)?->madeBy(),
+                $this->host->provided(ProbeServiceInterface::class)?->madeBy(),
                 array_column(
                     array_filter(
                         $this->host->logs(),

@@ -81,7 +81,7 @@ final readonly class ProbeExtension implements ExtensionInterface
             ],
         ));
 
-        $registry->provide(NoteServiceInterface::class, NoteServiceFactory::class);
+        $registry->provide(ProbeServiceInterface::class, ProbeServiceFactory::class);
         $registry->provide(BrokenServiceInterface::class, BrokenServiceFactory::class);
         $registry->provide(WrongServiceInterface::class, WrongServiceFactory::class);
 

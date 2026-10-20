@@ -7,26 +7,19 @@ namespace Contenir\Extension\Api\Conformance\Probe;
 use Override;
 
 /**
- * The probe's NoteServiceInterface.
+ * The probe's ProbeServiceInterface.
  *
  * @api
  */
-final readonly class NoteService implements NoteServiceInterface
+final readonly class ProbeService implements ProbeServiceInterface
 {
     public function __construct(
         private string $madeBy,
-        private string $note,
     ) {}
 
     #[Override]
     public function madeBy(): string
     {
         return $this->madeBy;
-    }
-
-    #[Override]
-    public function note(): string
-    {
-        return $this->note;
     }
 }

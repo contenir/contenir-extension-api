@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Tests\Integration\Testing;
 
 use Contenir\Extension\Api\Conformance\Probe\Journal;
-use Contenir\Extension\Api\Conformance\Probe\NoteServiceInterface;
 use Contenir\Extension\Api\Conformance\Probe\ProbeExtension;
+use Contenir\Extension\Api\Conformance\Probe\ProbeServiceInterface;
 use Contenir\Extension\Api\Conformance\Probe\WrongServiceInterface;
 use Contenir\Extension\Api\ExtensionInterface;
 use Contenir\Extension\Api\Testing\FrozenClock;
@@ -42,7 +42,7 @@ final class InMemoryServicesTest extends TestCase
     {
         $host = $this->host(['copycat' => new CopycatExtension(), 'probe' => new ProbeExtension(new Journal())]);
 
-        static::assertSame('probe', $host->provided(NoteServiceInterface::class)?->madeBy());
+        static::assertSame('probe', $host->provided(ProbeServiceInterface::class)?->madeBy());
     }
 
     #[Test]

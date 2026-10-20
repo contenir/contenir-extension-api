@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Tests\Unit;
 
+use Contenir\Extension\Api\Conformance\Probe\Module\ProbeMenu;
 use Contenir\Extension\Api\Diagnostic\DiagnosticDeclaration;
 use Contenir\Extension\Api\Event\Cache\CachePostClear;
 use Contenir\Extension\Api\Event\Record\RecordPostDelete;
@@ -15,12 +16,14 @@ use Contenir\Extension\Api\Field\FieldTypeDeclaration;
 use Contenir\Extension\Api\Form\Form;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Handler\HandlerDeclaration;
+use Contenir\Extension\Api\Handler\Privilege;
 use Contenir\Extension\Api\Listener\Delivery;
 use Contenir\Extension\Api\Listener\ListenerDeclaration;
 use Contenir\Extension\Api\Listener\Scope;
 use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
+use Contenir\Extension\Api\Module\MenuInterface;
 use Contenir\Extension\Api\Module\Module;
 use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Registry;
@@ -46,6 +49,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function array_keys;
+use function sprintf;
 
 #[Group('unit')]
 final class RegistryTest extends TestCase
@@ -80,6 +84,25 @@ final class RegistryTest extends TestCase
         $registry->listen('warm', CachePostClear::class, SyncSubscriber::class, Scope::all());
 
         static::assertCount(1, $registry->registration()->listeners);
+    }
+
+    #[Test]
+    public function declaresAHandlerNeedingAPrivilege(): void
+    {
+        $registry = new Registry('formbuilder');
+        $registry->handler('remove', ConnectHandler::class, Privilege::Delete);
+
+        static::assertSame(Privilege::Delete, $registry->registration()->handlers['remove']->privilege ?? null);
+    }
+
+    #[Test]
+    public function declaresAModuleMenu(): void
+    {
+        $registry = new Registry('formbuilder');
+        $registry->module('/addon/admin.xml');
+        $registry->menu(ProbeMenu::class);
+
+        static::assertSame(ProbeMenu::class, $registry->registration()->module->menu);
     }
 
     #[Test]
@@ -183,6 +206,17 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function declaresHandlersGoingByTheMethodByDefault(): void
+    {
+        $registry = new Registry('formbuilder');
+        $registry->handler('remove', ConnectHandler::class);
+
+        $declaration = $registry->registration()->handlers['remove'] ?? null;
+
+        static::assertSame(['remove', null], [$declaration?->name, $declaration?->privilege]);
+    }
+
+    #[Test]
     public function declaresIcons(): void
     {
         $registry = new Registry('newsletter');
@@ -279,6 +313,15 @@ final class RegistryTest extends TestCase
         $registry = new Registry('newsletter');
 
         static::assertSame($registry->handle(), $registry->registration()->handle);
+    }
+
+    #[Test]
+    public function keepsMenusForModules(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Only a module has a section menu: declare module() first');
+
+        (new Registry('newsletter'))->menu(ProbeMenu::class);
     }
 
     #[Test]
@@ -620,6 +663,22 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAMenuOfTheWrongKind(): void
+    {
+        $registry = new Registry('formbuilder');
+        $registry->module('/addon/admin.xml');
+
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Menu class "%s" must implement %s',
+            ConnectHandler::class,
+            MenuInterface::class,
+        ));
+
+        $registry->menu(ConnectHandler::class);
+    }
+
+    #[Test]
     public function rejectsAMigrationsNamespaceDeclaredTwice(): void
     {
         $registry = new Registry('newsletter');
@@ -765,6 +824,19 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('Handler "connect" is already declared');
 
         $registry->handler('connect', ConnectHandler::class);
+    }
+
+    #[Test]
+    public function rejectsASecondMenu(): void
+    {
+        $registry = new Registry('formbuilder');
+        $registry->module('/addon/admin.xml');
+        $registry->menu(ProbeMenu::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('The add-on has already declared its menu');
+
+        $registry->menu(ProbeMenu::class);
     }
 
     #[Test]

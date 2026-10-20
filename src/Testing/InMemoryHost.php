@@ -10,10 +10,13 @@ use Contenir\Extension\Api\Diagnostic\CheckResult;
 use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Catalogue;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
+use Contenir\Extension\Api\Event\Extension\FailurePoint;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Exception\UnknownSettingException;
 use Contenir\Extension\Api\ExtensionInterface;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Module\MenuGroup;
+use Contenir\Extension\Api\Module\MenuInterface;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Settings\SettingsInterface;
@@ -57,7 +60,7 @@ use function sprintf;
  *
  * @api
  *
- * @mago-expect lint:too-many-methods One method per thing the conformance suite drives, plus two for add-on tests.
+ * @mago-expect lint:too-many-methods One method per thing the conformance suite drives, plus three for add-on tests.
  */
 final class InMemoryHost implements HostDriverInterface
 {
@@ -238,6 +241,34 @@ final class InMemoryHost implements HostDriverInterface
     public function logs(): array
     {
         return $this->logger->entries();
+    }
+
+    /**
+     * What a loaded module's menu lists while $request is drawn: none when it
+     * declared no menu, or when its menu failed, which is reported as the
+     * host reports it.
+     *
+     * @return list<MenuGroup>
+     *
+     * @throws LogicException When the add-on is not loaded.
+     */
+    public function menu(string $handle, ServerRequestInterface $request): array
+    {
+        $registration = $this->registration($handle);
+        $menu         = $registration->module->menu;
+        if (null === $menu) {
+            return [];
+        }
+
+        try {
+            return $this->runtime
+                ->make($menu, MenuInterface::class)
+                ->groups($request, $this->runtime->context($registration->handle));
+        } catch (Throwable $failure) {
+            $this->runtime->report($registration->handle, FailurePoint::Menu, 'menu', $failure);
+
+            return [];
+        }
     }
 
     #[Override]

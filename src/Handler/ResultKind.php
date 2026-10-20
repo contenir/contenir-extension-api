@@ -12,4 +12,5 @@ enum ResultKind
     case Json;
     case Redirect;
     case Screen;
+    case Template;
 }

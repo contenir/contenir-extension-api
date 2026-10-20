@@ -7,6 +7,7 @@ namespace Contenir\Extension\Api\Tests\Unit\Handler;
 use Contenir\Extension\Api\Handler\HandlerResult;
 use Contenir\Extension\Api\Handler\ResultKind;
 use Contenir\Extension\Api\Handler\Screen;
+use Contenir\Extension\Api\Handler\Template;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -48,6 +49,17 @@ final class HandlerResultTest extends TestCase
     }
 
     #[Test]
+    public function answersWithATemplate(): void
+    {
+        $result = HandlerResult::template('fields', 'Fields', ['form' => 3]);
+
+        static::assertEquals(
+            [ResultKind::Template, new Template('fields', 'Fields', ['form' => 3])],
+            [$result->kind, $result->template],
+        );
+    }
+
+    #[Test]
     public function answersWithJson(): void
     {
         $result = HandlerResult::json(['lists' => ['main']], 201);
@@ -68,6 +80,14 @@ final class HandlerResultTest extends TestCase
             [ResultKind::Redirect, null, null, 200, null, []],
             [$result->kind, $result->url, $result->json, $result->status, $result->screen, $result->messages],
         );
+    }
+
+    #[Test]
+    public function keepsItsTemplateWithAMessage(): void
+    {
+        $result = HandlerResult::template('fields', 'Fields')->withMessage('success', 'Saved');
+
+        static::assertEquals(new Template('fields', 'Fields'), $result->template);
     }
 
     #[Test]

@@ -12,6 +12,7 @@ use Contenir\Extension\Api\Field\FieldTypeDeclaration;
 use Contenir\Extension\Api\Field\FieldTypeInterface;
 use Contenir\Extension\Api\Handler\HandlerDeclaration;
 use Contenir\Extension\Api\Handler\HandlerInterface;
+use Contenir\Extension\Api\Handler\Privilege;
 use Contenir\Extension\Api\Handler\WebhookInterface;
 use Contenir\Extension\Api\Internal\Names;
 use Contenir\Extension\Api\Listener\Delivery;
@@ -21,6 +22,7 @@ use Contenir\Extension\Api\Listener\Scope;
 use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
+use Contenir\Extension\Api\Module\MenuInterface;
 use Contenir\Extension\Api\Module\Module;
 use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Panel\RecordPanelInterface;
@@ -122,6 +124,11 @@ final class Registry
     private ?string $templates = null;
 
     /**
+     * @var class-string<MenuInterface>|null
+     */
+    private ?string $menu = null;
+
+    /**
      * @var array<string, Handle>
      */
     private array $dependencies = [];
@@ -220,13 +227,18 @@ final class Registry
 
     /**
      * An admin handler, mounted at /admin/extension/<handle>/<name> behind
-     * the ACL resource extension.<handle>.<name>.
+     * the ACL resource extension.<handle>.<name>. A module's handlers are
+     * guarded by its area instead, or by the section whose <handler> names
+     * them in the module's admin.xml, as the host's own screens are.
+     * $privilege is what the handler needs on that resource whatever the
+     * request's method; without it, View to read and Update for anything
+     * else.
      *
      * @param class-string<HandlerInterface> $class
      *
      * @throws InvalidDeclarationException When the name is malformed, reserved or taken, or the class is not a handler.
      */
-    public function handler(string $name, string $class): void
+    public function handler(string $name, string $class, ?Privilege $privilege = null): void
     {
         Names::name('Handler', $name);
         if (self::FIX === $name) {
@@ -237,6 +249,7 @@ final class Registry
             $name,
             Names::implementing('Handler', $class, HandlerInterface::class),
             sprintf('/admin/extension/%s/%s', $this->handle->value, $name),
+            $privilege,
         );
     }
 
@@ -281,6 +294,24 @@ final class Registry
     }
 
     /**
+     * What a module's section menu lists beyond its admin.xml, such as
+     * records from its own tables. Only a module has a section menu, so
+     * declare module() first.
+     *
+     * @param class-string<MenuInterface> $class
+     *
+     * @throws InvalidDeclarationException When the add-on is not a module, the class is not a menu, or a menu is already declared.
+     */
+    public function menu(string $class): void
+    {
+        if (null === $this->adminXml) {
+            throw InvalidDeclarationException::because('Only a module has a section menu: declare module() first');
+        }
+
+        $this->menu = Names::implementing('Menu', $this->once('menu', $this->menu, $class), MenuInterface::class);
+    }
+
+    /**
      * A folder of migrations creating the add-on's ext_<handle>_ tables, in
      * the site's database unless $target says the CMS's.
      *
@@ -299,7 +330,9 @@ final class Registry
 
     /**
      * Makes the add-on a module: an admin area of its own, from an admin.xml
-     * fragment of categories and sections.
+     * fragment holding one area of categories and sections. An area or a
+     * section in it may name one of the module's handlers with <handler>,
+     * to draw its screen.
      *
      * @throws InvalidDeclarationException When the path is empty or a module is already declared.
      */
@@ -343,7 +376,13 @@ final class Registry
             migrations: array_values($this->migrations),
             schedules: $this->schedules,
             scripts: $this->scripts,
-            module: new Module($this->adminXml, $this->assets, array_values($this->components), $this->templates),
+            module: new Module(
+                $this->adminXml,
+                $this->assets,
+                array_values($this->components),
+                $this->templates,
+                $this->menu,
+            ),
             dependencies: $this->dependencies,
             panels: $this->panels,
         );

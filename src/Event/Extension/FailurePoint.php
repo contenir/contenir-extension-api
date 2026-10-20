@@ -15,6 +15,7 @@ enum FailurePoint: string
     case Fix       = 'fix';
     case Handler   = 'handler';
     case Listener  = 'listener';
+    case Menu      = 'menu';
     case Operation = 'operation';
     case Panel     = 'panel';
     case Schedule  = 'schedule';

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<admin>
+    <fixtures>
+        <title>Fixtures</title>
+        <category>
+            <empty/>
+            <reports>
+                <section>
+                    <plain>
+                        <title>No handler</title>
+                    </plain>
+                    <boom>
+                        <handler> boom </handler>
+                    </boom>
+                </section>
+            </reports>
+        </category>
+    </fixtures>
+</admin>

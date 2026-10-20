@@ -29,6 +29,12 @@ final class Names
     private const string FIELD = '/^[a-z][a-z0-9_]{0,63}$/D';
 
     /**
+     * A module template's path within its templates folder, without the
+     * extension: names joined by slashes.
+     */
+    private const string TEMPLATE = '#^[a-z][a-z0-9-]{0,63}(/[a-z][a-z0-9-]{0,63}){0,7}$#D';
+
+    /**
      * A PHP namespace, without leading or trailing backslashes.
      */
     private const string NAMESPACE = '/^[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/D';
@@ -95,6 +101,22 @@ final class Names
         }
 
         return $namespace;
+    }
+
+    /**
+     * @throws InvalidDeclarationException When $name is not a template path.
+     */
+    public static function template(string $name): string
+    {
+        if (1 !== preg_match(self::TEMPLATE, $name)) {
+            throw InvalidDeclarationException::invalidName(
+                'Template',
+                $name,
+                'names of lowercase letters, digits and dashes, joined by slashes, without an extension',
+            );
+        }
+
+        return $name;
     }
 
     /**

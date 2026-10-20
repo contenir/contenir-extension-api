@@ -15,7 +15,9 @@ use function in_array;
 
 /**
  * Answers requests to add-ons' admin handlers, for someone holding the
- * handler's ACL resource.
+ * privilege the handler needs on its ACL resource: its own, or for a module,
+ * its section's or area's. A grant naming a resource alone holds every
+ * privilege on it; "<resource>:<privilege>" holds one.
  *
  * @internal
  */
@@ -40,7 +42,12 @@ final readonly class AdminHandlers
             return $this->responder->status(404);
         }
 
-        if (! in_array($registration->handle->permission($name), $grants, strict: true)) {
+        $resource  = ModuleAreas::resource($registration, $name) ?? $registration->handle->permission($name);
+        $privilege = $declaration->privilegeFor($request->getMethod())->value;
+        if (
+            ! in_array($resource, $grants, strict: true)
+            && ! in_array("{$resource}:{$privilege}", $grants, strict: true)
+        ) {
             return $this->responder->status(403);
         }
 
@@ -49,7 +56,7 @@ final readonly class AdminHandlers
                 ->make($declaration->class, HandlerInterface::class)
                 ->handle($request, $this->runtime->context($registration->handle));
 
-            return $this->responder->respond($result, $registration->handle);
+            return $this->responder->respond($result, $registration);
         } catch (Throwable $failure) {
             $this->runtime->report($registration->handle, FailurePoint::Handler, $name, $failure);
 

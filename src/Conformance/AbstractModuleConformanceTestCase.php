@@ -13,6 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 use function htmlspecialchars;
 use function str_contains;
+use function trim;
 
 /**
  * Modules (plan section 10): a module's handlers answer with its templates,
@@ -66,6 +67,20 @@ abstract class AbstractModuleConformanceTestCase extends AbstractConformanceTest
         ];
 
         static::assertSame([403, 200], [$answers[0]->getStatusCode(), $answers[1]->getStatusCode()]);
+    }
+
+    #[Test]
+    public function aModuleHandlerAnswersWithAFragmentAloneWithItsStatus(): void
+    {
+        $response = $this->host->handle(
+            $this->request('/admin/extension/probe-module/notes-part'),
+            [ProbeModuleExtension::AREA],
+        );
+
+        static::assertSame(
+            [201, "<ul class=\"probe-notes\">\n    <li>&lt;i&gt;One&lt;/i&gt;</li>\n</ul>"],
+            [$response->getStatusCode(), trim((string) $response->getBody())],
+        );
     }
 
     #[Test]

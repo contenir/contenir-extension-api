@@ -8,8 +8,8 @@ use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 
 /**
  * What an admin handler answers with: a redirect with messages, JSON, a
- * described screen, or, for a module, one of its templates. The host turns it
- * into its own response.
+ * described screen, or, for a module, one of its templates, drawn inside the
+ * dashboard or alone as a fragment. The host turns it into its own response.
  *
  * @api
  */
@@ -28,6 +28,7 @@ final readonly class HandlerResult
         public ?Screen $screen = null,
         public array $messages = [],
         public ?Template $template = null,
+        public ?Fragment $fragment = null,
     ) {}
 
     /**
@@ -36,6 +37,21 @@ final readonly class HandlerResult
     public static function back(): self
     {
         return new self(ResultKind::Redirect);
+    }
+
+    /**
+     * One of the module's templates, drawn alone as HTML, with $status, for a
+     * script on one of its screens to put in place. Only a module that
+     * declared templates may answer with one; any other handler's fragment
+     * answer fails as the handler would.
+     *
+     * @param array<string, mixed> $values What the template sees as $values
+     *
+     * @throws InvalidDeclarationException When the name is malformed.
+     */
+    public static function fragment(string $name, array $values = [], int $status = 200): self
+    {
+        return new self(ResultKind::Fragment, status: $status, fragment: new Fragment($name, $values));
     }
 
     public static function json(mixed $data, int $status = 200): self
@@ -84,6 +100,7 @@ final readonly class HandlerResult
             $this->screen,
             [...$this->messages, ['level' => $level, 'text' => $text]],
             $this->template,
+            $this->fragment,
         );
     }
 }

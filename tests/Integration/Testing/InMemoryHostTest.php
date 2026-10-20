@@ -153,6 +153,15 @@ final class InMemoryHostTest extends TestCase
     }
 
     #[Test]
+    public function failsAHandlerAnsweringWithAFragmentWhenItsAddOnIsNotAModule(): void
+    {
+        static::assertSame([500, [FailurePoint::Handler]], [
+            $this->admin('stray-fragment')->getStatusCode(),
+            $this->points(),
+        ]);
+    }
+
+    #[Test]
     public function failsAHandlerAnsweringWithATemplateWhenItsAddOnIsNotAModule(): void
     {
         static::assertSame([500, [FailurePoint::Handler]], [

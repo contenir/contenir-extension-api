@@ -161,7 +161,8 @@ about the same record:
 return HandlerResult::template('fields', 'Fields', ['form' => $form]);
 ```
 
-The host draws the dashboard around it, with the title in its header and breadcrumb. The template is
+The host draws the dashboard around it, with the title in its header and breadcrumb. For a script on one of the
+module's screens, `HandlerResult::fragment('builder/row', $values)` draws a template alone, as HTML to put in place. The template is
 `<templates>/fields.phtml` and runs with two variables: `$values`, as the handler passed them, and `$view`, a
 `Module\TemplateHelpersInterface` for escaping, URLs to the module's handlers and assets, the form token, icons and
 other templates. It uses the dashboard theme's markup and classes, never the host's own view helpers, so it draws

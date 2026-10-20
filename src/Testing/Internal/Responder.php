@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Testing\Internal;
 
+use Contenir\Extension\Api\Handler\Fragment;
 use Contenir\Extension\Api\Handler\HandlerResult;
 use Contenir\Extension\Api\Handler\ResultKind;
+use Contenir\Extension\Api\Handler\Template;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Testing\InMemoryTemplates;
 use JsonException;
@@ -32,6 +34,18 @@ final readonly class Responder
         private StreamFactoryInterface $streams,
     ) {}
 
+    /**
+     * A template or fragment result always names its template; this is for the type checker.
+     *
+     * @throws LogicException Always.
+     *
+     * @codeCoverageIgnore Unreachable: HandlerResult's named constructors always set the template a kind needs.
+     */
+    private static function none(): never
+    {
+        throw new LogicException('A template result names no template');
+    }
+
     public function body(int $status, string $contentType, string $body): ResponseInterface
     {
         return $this->status($status)
@@ -41,8 +55,8 @@ final readonly class Responder
 
     /**
      * JSON as JSON, a redirect to its URL or back to the add-on's settings,
-     * a described screen as its title, and a template as it draws (the
-     * in-memory host draws nothing around either).
+     * a described screen as its title, and a template or fragment as it
+     * draws (the in-memory host draws nothing around any of them).
      *
      * @throws JsonException  When a JSON result cannot be encoded.
      * @throws LogicException When the add-on has no such template.
@@ -63,7 +77,16 @@ final readonly class Responder
                 $result->url ?? "/admin/settings/{$handle->value}",
             ),
             ResultKind::Screen   => $this->body(200, 'text/plain', $result->screen->title ?? ''),
-            ResultKind::Template => $this->body(200, 'text/html', $this->template($result, $registration)),
+            ResultKind::Template => $this->body(
+                200,
+                'text/html',
+                $this->template($result->template ?? self::none(), $registration),
+            ),
+            ResultKind::Fragment => $this->body(
+                $result->status,
+                'text/html',
+                $this->template($result->fragment ?? self::none(), $registration),
+            ),
         };
     }
 
@@ -76,11 +99,10 @@ final readonly class Responder
      * @throws LogicException When the add-on has no templates or no such template.
      * @throws Throwable      What the template throws.
      */
-    private function template(HandlerResult $result, Registration $registration): string
+    private function template(Template|Fragment $template, Registration $registration): string
     {
         $templates = $registration->module->templates
             ?? throw new LogicException(sprintf('Add-on "%s" has no templates', $registration->handle->value));
-        $template = $result->template ?? throw new LogicException('A template result names no template');
 
         return (new InMemoryTemplates($registration->handle, $templates))->render($template->name, $template->values);
     }

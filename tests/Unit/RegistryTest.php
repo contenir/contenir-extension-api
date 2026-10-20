@@ -34,6 +34,7 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\Event\SubscriberPostSync;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\Event\SubscriberSync;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ListFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ResyncTask;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\ShadeFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignupScripts;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SyncSubscriber;
@@ -100,6 +101,18 @@ final class RegistryTest extends TestCase
                 '/addon/templates',
             ),
             $registry->registration()->module,
+        );
+    }
+
+    #[Test]
+    public function declaresAnImportableFieldTypeAsAnyOther(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->fieldType('shade', ShadeFieldType::class);
+
+        static::assertEquals(
+            ['newsletter:shade' => new FieldTypeDeclaration('newsletter:shade', 'shade', ShadeFieldType::class)],
+            $registry->registration()->fieldTypes,
         );
     }
 

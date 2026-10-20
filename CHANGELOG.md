@@ -4,7 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] - 2026-10-19
+## [0.2.0] - 2026-10-20
+
+### Added
+
+- `Field\ImportableFieldTypeInterface`, which a field type implements when a CSV import may fill it. Its
+  `importCell()` turns a trimmed cell into the value an editor would submit, which the host then validates and
+  normalises as usual, or throws `Exception\CellRejectedException` with a message for the editor. A field type
+  without it is left out of imports, as before.
+
+## [0.1.0] - 2026-10-19
 
 ### Added
 

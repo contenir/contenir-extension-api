@@ -15,9 +15,10 @@ use Contenir\Extension\Api\Internal\Names;
  * $name is the template's path within the module's templates folder, without
  * its .phtml extension: "fields" or "notification/editor". The template runs
  * with two variables: $values, as given here, and $view, the host's
- * Module\TemplateHelpersInterface. Its $tabs are drawn under the header as a
- * described screen's are, so a module's template screens can share a row of
- * tabs with its described ones.
+ * Module\TemplateHelpersInterface. Its $tabs are what $view->tabs() draws,
+ * as the host draws a described screen's; the template prints them under its
+ * own header, so a module's template screens can share a row of tabs with its
+ * described ones.
  *
  * @api
  */

@@ -8,9 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Tabs on template screens: `Template::$tabs`, given as `HandlerResult::template($name, $title, $values, $tabs)`. The
-  host draws them under the header as it does a described screen's, so a module's template screens (a form's fields
-  editor or preview) share a row of tabs with its described ones. A template without tabs is drawn as before.
+- Tabs on template screens: `Template::$tabs`, given as `HandlerResult::template($name, $title, $values, $tabs)`, and
+  `TemplateHelpersInterface::tabs()`, which draws them as the host draws a described screen's for the template to
+  print under its own header. A module's template screens (a form's fields editor or preview) share a row of tabs
+  with its described ones. A template without tabs draws an empty string. `InMemoryTemplates` draws them as a list
+  of links with the current one marked.
+- `AbstractModuleConformanceTestCase` checks a template's tabs are drawn where it prints them, with the current one
+  marked.
 - Services (P13): `Registry::provide($interface, $factory)` declares a service the host asks for by interface, such as
   the CDN purger core calls. A `Service\ServiceFactoryInterface` makes it with the add-on's context, once, and only
   while the add-on is enabled. When several enabled add-ons provide one interface, the first to load provides it and
@@ -25,6 +29,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - `OperationContextInterface` and `HostDriverInterface` each gain methods, so a host implementing them must add them.
+- `TemplateHelpersInterface` gains `tabs()`, so a host implementing it must add it.
 
 ## [0.5.0] - 2026-10-20
 

@@ -6,6 +6,7 @@ namespace Contenir\Extension\Api\Testing;
 
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Handler\Tab;
 use Contenir\Extension\Api\Internal\Names;
 use Contenir\Extension\Api\Module\TemplateHelpersInterface;
 use LogicException;
@@ -28,8 +29,9 @@ use const ENT_SUBSTITUTE;
 /**
  * Draws a module's templates as a host would, with plain helpers in place of
  * the host's: URLs under /admin/extension/<handle>/ and /cms/ext/<handle>/, a
- * fixed form token, and an empty SVG naming each icon. A module's tests use
- * it to draw a template on its own.
+ * fixed form token, an empty SVG naming each icon, and the template's tabs as
+ * a list of links, the current one marked. A module's tests use it to draw a
+ * template on its own.
  *
  * @api
  */
@@ -37,9 +39,13 @@ final readonly class InMemoryTemplates implements TemplateHelpersInterface
 {
     public const string FORM_FIELD = '<input type="hidden" name="token" value="in-memory">';
 
+    /**
+     * @param list<Tab> $tabs The tabs tabs() draws
+     */
     public function __construct(
         private Handle $handle,
         private string $path,
+        private array $tabs = [],
     ) {}
 
     /**
@@ -97,6 +103,26 @@ final readonly class InMemoryTemplates implements TemplateHelpersInterface
         }
 
         return self::draw($file, $values, $this);
+    }
+
+    #[Override]
+    public function tabs(): string
+    {
+        if ([] === $this->tabs) {
+            return '';
+        }
+
+        $links = '';
+        foreach ($this->tabs as $tab) {
+            $links .= sprintf(
+                '<a href="%s"%s>%s</a>',
+                $this->escape($this->url($tab->handler, $tab->query)),
+                $tab->current ? ' aria-current="page"' : '',
+                $this->escape($tab->label),
+            );
+        }
+
+        return "<nav class=\"tabs\">{$links}</nav>";
     }
 
     #[Override]

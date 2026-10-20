@@ -13,6 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 use function htmlspecialchars;
 use function str_contains;
+use function strpos;
 use function trim;
 
 /**
@@ -109,6 +110,20 @@ abstract class AbstractModuleConformanceTestCase extends AbstractConformanceTest
         );
 
         static::assertSame(403, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function aTemplatePrintsItsTabsWhereItAsks(): void
+    {
+        $body = (string) $this->host
+            ->handle($this->request('/admin/extension/probe-module/page'), [ProbeModuleExtension::AREA])
+            ->getBody();
+        $tabs = (int) strpos($body, needle: 'href="/admin/extension/probe-module/notes?page=3"');
+
+        static::assertSame(
+            [true, true],
+            [$tabs > (int) strpos($body, needle: 'probe-greeting'), str_contains($body, 'aria-current="page"')],
+        );
     }
 
     /**

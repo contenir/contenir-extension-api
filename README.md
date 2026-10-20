@@ -81,10 +81,11 @@ final class NewsletterExtension implements ExtensionInterface
 | `listen()` | a listener for an event, which a site binds to its sections in admin.xml; it may narrow the listener's field scope but never widen it |
 | `diagnostic()` | a check in the update check, whose result can offer a one-click fix or a guided fix |
 | `handler()` | an admin request handler at `/admin/extension/<handle>/<name>`, behind the ACL resource `extension.<handle>.<name>` |
-| `webhook()` | a public handler at `/extension/<handle>/<name>`, which verifies its caller's signature or token before it runs |
+| `webhook()` | a public handler at `/api/extension/<handle>/<name>`, which verifies its caller's signature or token before it runs |
 | `migrations()` | tables of the add-on's own, `ext_<handle>_*`, on the site's database or the CMS's |
 | `schedule()` | recurring work for the host's job runner, every so many minutes or on a cron expression |
 | `script()` | scripts for public pages, each with its placement and consent category |
+| `panel()` | a panel beside one record on its view and edit screens (its section, id and values in, a title, text and links out), shown on the sections a site binds it to; the host escapes everything in it |
 | `module()`, `assets()`, `component()`, `templates()` | an admin area of the add-on's own, with its scripts, styles and dashboard components; only a module may ship templates |
 | `dependsOn()` | another add-on this one uses, through that add-on's `Event\` and `Api\` namespaces only |
 

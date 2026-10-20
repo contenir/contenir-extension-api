@@ -13,7 +13,7 @@ use function preg_match;
 /**
  * Routes requests to add-ons' admin handlers, under
  * /admin/extension/<handle>/<name>, and public webhooks, under
- * /extension/<handle>/<name>.
+ * /api/extension/<handle>/<name>.
  *
  * @internal
  */
@@ -21,7 +21,7 @@ final readonly class Answers
 {
     private const string ADMIN = '#^/admin/extension/([a-z0-9-]+)/([a-z0-9-]+)$#D';
 
-    private const string PUBLIC = '#^/extension/([a-z0-9-]+)/([a-z0-9-]+)$#D';
+    private const string PUBLIC = '#^/api/extension/([a-z0-9-]+)/([a-z0-9-]+)$#D';
 
     public function __construct(
         private AdminHandlers $handlers,

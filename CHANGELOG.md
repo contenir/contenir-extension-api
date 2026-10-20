@@ -8,10 +8,20 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `Registry::panel()`: a panel beside one record on its view and edit screens (P9). The panel class implements
+  `Panel\RecordPanelInterface`, gets the record as a `Panel\RecordView` (section, id and stored values) and returns a
+  `Panel\Panel` (a title, paragraphs of plain text and `Panel\Link`s), or null to show nothing. The host escapes all
+  of it. A site binds a panel to the sections it shows on. `Registration::$panels` lists them, and
+  `FailurePoint::Panel` names a panel that throws.
 - `Field\ImportableFieldTypeInterface`, which a field type implements when a CSV import may fill it. Its
   `importCell()` turns a trimmed cell into the value an editor would submit, which the host then validates and
   normalises as usual, or throws `Exception\CellRejectedException` with a message for the editor. A field type
   without it is left out of imports, as before.
+
+### Changed
+
+- Public webhooks are mounted at `/api/extension/<handle>/<name>`, under the `/api` prefix sites send to the CMS,
+  where they were at `/extension/<handle>/<name>`. The handler conformance case asks for the new path.
 
 ## [0.1.0] - 2026-10-19
 

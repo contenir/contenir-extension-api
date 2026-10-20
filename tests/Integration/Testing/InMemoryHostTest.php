@@ -90,7 +90,9 @@ final class InMemoryHostTest extends TestCase
     {
         static::assertSame(
             404,
-            $this->host->handle($this->http->createServerRequest('POST', '/extension/edge/missing'))->getStatusCode(),
+            $this->host
+                ->handle($this->http->createServerRequest('POST', '/api/extension/edge/missing'))
+                ->getStatusCode(),
         );
     }
 
@@ -162,7 +164,7 @@ final class InMemoryHostTest extends TestCase
     #[Test]
     public function failsAWebhookWhoseVerificationThrows(): void
     {
-        $response = $this->host->handle($this->http->createServerRequest('POST', '/extension/edge/explode'));
+        $response = $this->host->handle($this->http->createServerRequest('POST', '/api/extension/edge/explode'));
 
         static::assertSame([500, [FailurePoint::Webhook]], [$response->getStatusCode(), $this->points()]);
     }

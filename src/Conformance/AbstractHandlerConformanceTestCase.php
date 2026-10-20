@@ -15,7 +15,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 /**
  * Add-ons' requests (plan section 9, P1): admin handlers under
  * /admin/extension/<handle>/<name> behind their ACL resource, and public
- * webhooks under /extension/<handle>/<name>, run only once they verify.
+ * webhooks under /api/extension/<handle>/<name>, run only once they verify.
  *
  * @api
  */
@@ -42,7 +42,7 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
     public function aHandlerIsNotAWebhook(): void
     {
         $response = $this->host->handle(
-            $this->request('GET', '/extension/probe/status')->withHeader(Hook::HEADER, Hook::SIGNATURE),
+            $this->request('GET', '/api/extension/probe/status')->withHeader(Hook::HEADER, Hook::SIGNATURE),
             ['extension.probe.status'],
         );
 
@@ -82,7 +82,7 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
     public function aWebhookAnswersAVerifiedRequestWithItsRawBody(): void
     {
         $response = $this->host->handle(
-            $this->request('POST', '/extension/probe/hook', 'payload')->withHeader(Hook::HEADER, Hook::SIGNATURE),
+            $this->request('POST', '/api/extension/probe/hook', 'payload')->withHeader(Hook::HEADER, Hook::SIGNATURE),
         );
 
         static::assertSame(
@@ -95,7 +95,7 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
     public function aWebhookAnswersGetAsWellAsPost(): void
     {
         $response = $this->host->handle(
-            $this->request('GET', '/extension/probe/hook')->withHeader(Hook::HEADER, Hook::SIGNATURE),
+            $this->request('GET', '/api/extension/probe/hook')->withHeader(Hook::HEADER, Hook::SIGNATURE),
         );
 
         static::assertSame([202, ['hook:GET:']], [$response->getStatusCode(), $this->journal->entries()]);
@@ -105,7 +105,7 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
     public function aWebhookNeedsNoPermission(): void
     {
         $response = $this->host->handle(
-            $this->request('POST', '/extension/probe/hook')->withHeader(Hook::HEADER, Hook::SIGNATURE),
+            $this->request('POST', '/api/extension/probe/hook')->withHeader(Hook::HEADER, Hook::SIGNATURE),
             [],
         );
 
@@ -115,7 +115,7 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
     #[Test]
     public function aWebhookRefusesARequestItCannotVerify(): void
     {
-        $response = $this->host->handle($this->request('POST', '/extension/probe/hook', 'payload'));
+        $response = $this->host->handle($this->request('POST', '/api/extension/probe/hook', 'payload'));
 
         static::assertSame([401, []], [$response->getStatusCode(), $this->journal->entries()]);
     }

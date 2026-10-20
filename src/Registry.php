@@ -22,6 +22,8 @@ use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
 use Contenir\Extension\Api\Module\Module;
+use Contenir\Extension\Api\Panel\PanelDeclaration;
+use Contenir\Extension\Api\Panel\RecordPanelInterface;
 use Contenir\Extension\Api\Schedule\Frequency;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Schedule\ScheduledTaskInterface;
@@ -102,6 +104,11 @@ final class Registry
      * @var array<string, ScriptDeclaration>
      */
     private array $scripts = [];
+
+    /**
+     * @var array<string, PanelDeclaration>
+     */
+    private array $panels = [];
 
     private ?string $adminXml = null;
 
@@ -302,6 +309,24 @@ final class Registry
     }
 
     /**
+     * A panel beside one record on its view and edit screens. A site binds it
+     * to the sections it should show on; a section with no binding never
+     * asks for it.
+     *
+     * @param class-string<RecordPanelInterface> $class
+     *
+     * @throws InvalidDeclarationException When the name is malformed or taken, or the class is not a record panel.
+     */
+    public function panel(string $name, string $class): void
+    {
+        Names::name('Panel', $name);
+        $this->panels[$this->free('panel', $name, $this->panels)] = new PanelDeclaration(
+            $name,
+            Names::implementing('Record panel', $class, RecordPanelInterface::class),
+        );
+    }
+
+    /**
      * Everything declared so far.
      */
     public function registration(): Registration
@@ -320,6 +345,7 @@ final class Registry
             scripts: $this->scripts,
             module: new Module($this->adminXml, $this->assets, array_values($this->components), $this->templates),
             dependencies: $this->dependencies,
+            panels: $this->panels,
         );
     }
 
@@ -397,7 +423,7 @@ final class Registry
     }
 
     /**
-     * A public webhook, mounted at /extension/<handle>/<name>, which must
+     * A public webhook, mounted at /api/extension/<handle>/<name>, which must
      * verify its caller itself.
      *
      * @param class-string<WebhookInterface> $class
@@ -410,7 +436,7 @@ final class Registry
         $this->webhooks[$this->free('webhook', $name, $this->webhooks)] = new HandlerDeclaration(
             $name,
             Names::implementing('Webhook', $class, WebhookInterface::class),
-            sprintf('/extension/%s/%s', $this->handle->value, $name),
+            sprintf('/api/extension/%s/%s', $this->handle->value, $name),
         );
     }
 

@@ -107,7 +107,7 @@ final class BehaviourTest extends TestCase
     private function ping(string $signature): ServerRequestInterface
     {
         return $this->http
-            ->createServerRequest('POST', 'https://cms.example.com/extension/example/ping')
+            ->createServerRequest('POST', 'https://cms.example.com/api/extension/example/ping')
             ->withHeader(Ping::HEADER, $signature)
             ->withBody($this->http->createStream(self::BODY));
     }

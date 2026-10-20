@@ -22,6 +22,7 @@ use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
 use Contenir\Extension\Api\Module\Module;
+use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Schedule\Frequency;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
@@ -36,6 +37,7 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\ListFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ResyncTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignupScripts;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberPanel;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SyncSubscriber;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -201,6 +203,24 @@ final class RegistryTest extends TestCase
         static::assertEquals(
             [new MigrationSet('/addon/migrations', 'NewsletterMigrations', Target::Site)],
             $registry->registration()->migrations,
+        );
+    }
+
+    #[Test]
+    public function declaresNoRecordPanelsUntilAsked(): void
+    {
+        static::assertSame([], (new Registry('newsletter'))->registration()->panels);
+    }
+
+    #[Test]
+    public function declaresRecordPanels(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->panel('subscriber', SubscriberPanel::class);
+
+        static::assertEquals(
+            ['subscriber' => new PanelDeclaration('subscriber', SubscriberPanel::class)],
+            $registry->registration()->panels,
         );
     }
 
@@ -388,7 +408,7 @@ final class RegistryTest extends TestCase
             ['unsubscribe' => new HandlerDeclaration(
                 'unsubscribe',
                 SignedWebhook::class,
-                '/extension/newsletter/unsubscribe',
+                '/api/extension/newsletter/unsubscribe',
             )],
             $registry->registration()->webhooks,
         );
@@ -551,6 +571,15 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAMalformedPanelName(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Panel name "Subscriber"');
+
+        (new Registry('newsletter'))->panel('Subscriber', SubscriberPanel::class);
+    }
+
+    #[Test]
     public function rejectsAMalformedScheduleName(): void
     {
         $this->expectException(InvalidDeclarationException::class);
@@ -638,6 +667,27 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('The module path must not be empty');
 
         (new Registry('formbuilder'))->module(' ');
+    }
+
+    #[Test]
+    public function rejectsAPanelNameTakenTwice(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->panel('subscriber', SubscriberPanel::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('subscriber');
+
+        $registry->panel('subscriber', SubscriberPanel::class);
+    }
+
+    #[Test]
+    public function rejectsAPanelThatIsNotARecordPanel(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Record panel');
+
+        (new Registry('newsletter'))->panel('subscriber', SignupScripts::class);
     }
 
     #[Test]

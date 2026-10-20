@@ -10,7 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Answers a public request from outside the CMS, such as a payment
  * provider's or a mailing list's webhook. The host mounts it at
- * /extension/<handle>/<name> with no session, CSRF or ACL check, passes the
+ * /api/extension/<handle>/<name> with no session, CSRF or ACL check, passes the
  * raw body, answers GET as well as POST, and limits how often it is called.
  *
  * Because nothing else guards it, the host calls verify() first and runs

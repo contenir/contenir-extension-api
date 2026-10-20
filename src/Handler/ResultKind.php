@@ -13,4 +13,5 @@ enum ResultKind
     case Redirect;
     case Screen;
     case Template;
+    case Fragment;
 }

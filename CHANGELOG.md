@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-20
+
+### Added
+
+- Fragments: `HandlerResult::fragment($name, $values, $status)` answers with one of a module's templates drawn
+  alone, as HTML for a script on one of its screens to put in place, such as a new row in an editor or the body of
+  a dialog. It is `ResultKind::Fragment`, holding a `Handler\Fragment`, and the template runs as a screen
+  template's does. A handler of an add-on that is not a module fails if it answers with one.
+- `AbstractModuleConformanceTestCase` checks a fragment is drawn alone, with its status.
+
 ## [0.4.0] - 2026-10-20
 
 ### Added

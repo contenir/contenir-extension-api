@@ -11,8 +11,8 @@ use Override;
 
 /**
  * The module the conformance suite loads beside the probe: an area, Probes,
- * whose home is a template screen, with a Notes section drawn by a handler
- * and a handler that needs Delete.
+ * whose home is a template screen, with a Notes section drawn by a handler,
+ * a handler answering with a fragment, and a handler that needs Delete.
  *
  * @api
  */
@@ -38,6 +38,7 @@ final readonly class ProbeModuleExtension implements ExtensionInterface
         $registry->menu(ProbeMenu::class);
         $registry->handler('page', PageHandler::class);
         $registry->handler('notes', NotesHandler::class);
+        $registry->handler('notes-part', NotesPartHandler::class);
         $registry->handler('remove', NotesHandler::class, Privilege::Delete);
     }
 }

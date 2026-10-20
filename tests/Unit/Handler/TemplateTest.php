@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Tests\Unit\Handler;
 
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
+use Contenir\Extension\Api\Handler\Tab;
 use Contenir\Extension\Api\Handler\Template;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -55,6 +56,20 @@ final class TemplateTest extends TestCase
     public function acceptsAPathOfNames(string $name): void
     {
         static::assertSame($name, (new Template($name, 'Fields'))->name);
+    }
+
+    #[Test]
+    public function hasNoTabsUnlessGiven(): void
+    {
+        static::assertSame([], (new Template('fields', 'Fields'))->tabs);
+    }
+
+    #[Test]
+    public function keepsItsTabs(): void
+    {
+        $tabs = [new Tab('Fields', 'fields', ['form' => 3], current: true), new Tab('Settings', 'form', ['form' => 3])];
+
+        static::assertSame($tabs, (new Template('fields', 'Fields', tabs: $tabs))->tabs);
     }
 
     #[Test]

@@ -17,6 +17,7 @@ use Contenir\Extension\Api\ExtensionInterface;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Module\MenuGroup;
 use Contenir\Extension\Api\Module\MenuInterface;
+use Contenir\Extension\Api\Operation\OperationResultInterface;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Settings\SettingsInterface;
@@ -28,6 +29,8 @@ use Contenir\Extension\Api\Testing\Internal\BoundListener;
 use Contenir\Extension\Api\Testing\Internal\Chain;
 use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
+use Contenir\Extension\Api\Testing\Internal\Operations;
+use Contenir\Extension\Api\Testing\Internal\ProvidedServices;
 use Contenir\Extension\Api\Testing\Internal\Records;
 use Contenir\Extension\Api\Testing\Internal\Responder;
 use Contenir\Extension\Api\Testing\Internal\Runtime;
@@ -61,6 +64,7 @@ use function sprintf;
  * @api
  *
  * @mago-expect lint:too-many-methods One method per thing the conformance suite drives, plus three for add-on tests.
+ * @mago-expect lint:too-many-properties One property per part of the host the conformance suite drives.
  */
 final class InMemoryHost implements HostDriverInterface
 {
@@ -79,6 +83,10 @@ final class InMemoryHost implements HostDriverInterface
     private readonly Checks $checks;
 
     private readonly Answers $answers;
+
+    private readonly Operations $operations;
+
+    private readonly ProvidedServices $provided;
 
     /**
      * @var array<string, Registration> By handle
@@ -124,6 +132,8 @@ final class InMemoryHost implements HostDriverInterface
         );
         $this->dispatcher = new Dispatcher($this->bindings, $this->runtime);
         $this->checks     = new Checks($this->runtime);
+        $this->operations = new Operations($this->runtime);
+        $this->provided   = new ProvidedServices($this->runtime);
 
         $responder     = new Responder($responses, $streams);
         $this->answers = new Answers(
@@ -183,6 +193,8 @@ final class InMemoryHost implements HostDriverInterface
 
             $this->load($handle, $extension);
         }
+
+        $this->provided->warnOfRivals($this->registrations);
     }
 
     /**
@@ -271,10 +283,30 @@ final class InMemoryHost implements HostDriverInterface
         }
     }
 
+    /**
+     * @throws LogicException When the add-on is not loaded, or has no such section or operation.
+     */
+    #[Override]
+    public function operate(
+        string $handle,
+        string $section,
+        string $operation,
+        array $posted,
+        array $grants,
+    ): ?OperationResultInterface {
+        return $this->operations->run($this->registration($handle), $section, $operation, $posted, $grants);
+    }
+
     #[Override]
     public function problems(): array
     {
         return $this->problems;
+    }
+
+    #[Override]
+    public function provided(string $service): ?object
+    {
+        return $this->provided->get($this->registrations, $service);
     }
 
     /**

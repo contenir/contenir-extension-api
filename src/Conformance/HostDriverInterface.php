@@ -9,6 +9,7 @@ use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\ExtensionInterface;
+use Contenir\Extension\Api\Operation\OperationResultInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -101,11 +102,42 @@ interface HostDriverInterface
     public function logs(): array;
 
     /**
+     * Runs an operation of an add-on's settings section, as pressing its
+     * button does, with $posted as the request's body, for someone holding
+     * the ACL resources in $grants. The section's resource is
+     * settings.<category>.<section>, and the operation needs its declared
+     * privilege on it, as handle() reads grants. Null when $grants doesn't
+     * hold it, in which case nothing runs.
+     *
+     * @param array<string, mixed> $posted
+     * @param list<string>         $grants
+     */
+    public function operate(
+        string $handle,
+        string $section,
+        string $operation,
+        array $posted,
+        array $grants,
+    ): ?OperationResultInterface;
+
+    /**
      * Why each add-on that failed to load was skipped, by handle.
      *
      * @return array<string, string>
      */
     public function problems(): array;
+
+    /**
+     * The service an enabled add-on provides for $service, made once, or null
+     * when no enabled add-on provides it or its factory failed.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $service
+     *
+     * @return T|null
+     */
+    public function provided(string $service): ?object;
 
     /**
      * Runs the job runner until no background work is left.

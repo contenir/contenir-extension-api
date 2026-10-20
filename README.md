@@ -88,6 +88,7 @@ final class NewsletterExtension implements ExtensionInterface
 | `panel()` | a panel beside one record on its view and edit screens (its section, id and values in, a title, text and links out), shown on the sections a site binds it to; the host escapes everything in it |
 | `module()`, `assets()`, `component()`, `templates()`, `menu()` | an admin area of the add-on's own, with its scripts, styles and dashboard components; only a module may ship templates or a section menu (see Modules) |
 | `dependsOn()` | another add-on this one uses, through that add-on's `Event\` and `Api\` namespaces only |
+| `provide()` | a service the host asks for by interface, such as the CDN purger core calls, made by a `Service\ServiceFactoryInterface` with the add-on's context, and only while the add-on is enabled |
 
 A host reads everything declared back with `Registry::registration()`.
 
@@ -187,7 +188,31 @@ $settings->set(['token' => $token]);            // saves as the settings screen 
 The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
 `Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
 `IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for
-one release.
+one release. An operation on an add-on's settings section gets that add-on's context from
+`OperationContextInterface::extension()`, for its settings, and its logger from `logger()`; a core section's operation
+gets null.
+
+### Services
+
+An add-on can provide a service that the CMS, or another add-on, asks the host for by interface. The interface lives in
+a library both can require, so neither names the other:
+
+```php
+$registry->provide(PurgerInterface::class, PurgerFactory::class);
+
+final class PurgerFactory implements ServiceFactoryInterface
+{
+    public function create(ExtensionContextInterface $context): PurgerInterface
+    {
+        return new CloudflarePurger(/* built from $context->settings(), logging to $context->logger() */);
+    }
+}
+```
+
+The host makes the service once, with the add-on's context, and only while the add-on is enabled, so disabling the
+add-on takes the service away. When several enabled add-ons provide one interface, the first to load provides it and
+the host logs the others. A factory that throws, or makes something that isn't the interface, is reported like any
+add-on failure (`FailurePoint::Service`), and the host has no service.
 
 ## Conformance suite
 
@@ -202,7 +227,8 @@ A host proves it implements the API by running the conformance suite: abstract P
 | `AbstractContextConformanceTestCase` | an add-on's context names it, stamps its log entries, and refuses core events and recurring chains |
 | `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST |
 | `AbstractModuleConformanceTestCase` | a module's handlers answer with its templates, values escaped, behind its area's or section's resource and the privilege each declares |
-| `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events |
+| `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events; operations on its section run with its context, behind their privilege on `settings.<category>.<section>` |
+| `AbstractServiceConformanceTestCase` | services add-ons provide: made once with the add-on's context, only while it is enabled, from the first to load; a failing factory is reported and provides nothing |
 | `AbstractDiagnosticConformanceTestCase` | checks in the update check; fixes need `extension.<handle>.fix` and re-run the check |
 
 A host's test suite extends each one and implements `createHost()`, returning a fresh

@@ -5,23 +5,29 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Conformance;
 
 use Contenir\Extension\Api\Conformance\Probe\ProbeExtension;
+use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Override;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 
+use function array_map;
 use function http_build_query;
 
 /**
  * An add-on's own settings, through its context: it reads back what it
  * saved, a field it never saved has its declared default, writing fires the
- * settings events, and it can't write a field it didn't declare.
+ * settings events, and it can't write a field it didn't declare. The
+ * operations on its settings section run with its context, behind their
+ * privilege on the section's resource.
  *
  * @api
  */
 abstract class AbstractSettingsConformanceTestCase extends AbstractConformanceTestCase
 {
     private const array GRANTS = ['extension.probe.remember'];
+
+    private const string SECTION_RESOURCE = 'settings.system.probe';
 
     #[Test]
     public function aFieldNeverSavedHasItsDeclaredDefault(): void
@@ -48,6 +54,69 @@ abstract class AbstractSettingsConformanceTestCase extends AbstractConformanceTe
         static::assertSame(
             [200, '{"outcome":"done","note":"hello","all":{"note":"hello","colour":null}}'],
             [$response->getStatusCode(), (string) $response->getBody()],
+        );
+    }
+
+    #[Test]
+    public function anOperationLogsUnderItsAddOn(): void
+    {
+        $this->host->operate(ProbeExtension::HANDLE, 'probe', 'note', [], [self::SECTION_RESOURCE]);
+
+        static::assertContains(
+            ['level' => 'info', 'message' => 'The note operation ran', 'context' => ['source' => 'extension.probe']],
+            $this->host->logs(),
+        );
+    }
+
+    #[Test]
+    public function anOperationNeedsItsPrivilegeOnTheSection(): void
+    {
+        static::assertSame(
+            [null, 'success'],
+            [
+                $this->host->operate(ProbeExtension::HANDLE, 'probe', 'note', [], [self::SECTION_RESOURCE . ':view']),
+                $this->host
+                    ->operate(ProbeExtension::HANDLE, 'probe', 'note', [], [self::SECTION_RESOURCE . ':update'])
+                    ?->messages()[0]['level'] ?? null,
+            ],
+        );
+    }
+
+    #[Test]
+    public function anOperationRunsWithItsAddOnsContext(): void
+    {
+        $this->remember(['note' => 'hello']);
+
+        static::assertSame(
+            [['level' => 'success', 'text' => 'probe: hello, posted blue, on settings.system.probe']],
+            $this->host
+                ->operate(ProbeExtension::HANDLE, 'probe', 'note', ['value' => 'blue'], [self::SECTION_RESOURCE])
+                ?->messages(),
+        );
+    }
+
+    #[Test]
+    public function anOperationThatFailsIsReportedUnderItsAddOn(): void
+    {
+        $result = $this->host->operate(ProbeExtension::HANDLE, 'probe', 'broken', [], [self::SECTION_RESOURCE]);
+
+        static::assertSame(
+            [
+                [['level' => 'danger', 'text' => 'That could not be done. The log has the details.']],
+                [['probe', 'operation', 'broken']],
+            ],
+            [
+                $result?->messages(),
+                array_map(
+                    /** @return array{string, string, string} */
+                    static fn(ExtensionPostFail $failure): array => [
+                        $failure->handle->value,
+                        $failure->point->value,
+                        $failure->name,
+                    ],
+                    $this->host->failures(),
+                ),
+            ],
         );
     }
 

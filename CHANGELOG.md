@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - 2026-10-21
+
+### Added
+
+- Services (P13): `Registry::provide($interface, $factory)` declares a service the host asks for by interface, such as
+  the CDN purger core calls. A `Service\ServiceFactoryInterface` makes it with the add-on's context, once, and only
+  while the add-on is enabled. When several enabled add-ons provide one interface, the first to load provides it and
+  the host logs the others. `Registration::$services` lists them, and `FailurePoint::Service` names a factory that
+  failed.
+- `OperationContextInterface::extension()`: the context of the add-on whose settings section declared the operation,
+  so its operations can read its settings; null for a core section's.
+- `HostDriverInterface::operate()` and `provided()`, with `Conformance\AbstractServiceConformanceTestCase` and
+  operation tests in `AbstractSettingsConformanceTestCase`. The in-memory host runs settings operations and provides
+  services. The probe add-on gains two operations, three services and a rival add-on (`Probe\RivalExtension`).
+
+### Changed
+
+- `OperationContextInterface` and `HostDriverInterface` each gain methods, so a host implementing them must add them.
+
 ## [0.5.0] - 2026-10-20
 
 ### Added

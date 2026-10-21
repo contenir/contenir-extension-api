@@ -94,16 +94,22 @@ final readonly class HandlerResult
      * in its header. Only a module that declared templates may answer with
      * one; any other handler's template answer fails as the handler would.
      * Its $tabs are what the template prints with $view->tabs(), drawn as a
-     * described screen's are.
+     * described screen's are, and its $parent, when named, the page the
+     * breadcrumb shows it under.
      *
      * @param array<string, mixed> $values What the template sees as $values
      * @param list<Tab>            $tabs
      *
      * @throws InvalidDeclarationException When the name is malformed or the title empty.
      */
-    public static function template(string $name, string $title, array $values = [], array $tabs = []): self
-    {
-        return new self(ResultKind::Template, template: new Template($name, $title, $values, $tabs));
+    public static function template(
+        string $name,
+        string $title,
+        array $values = [],
+        array $tabs = [],
+        ?ParentPage $parent = null,
+    ): self {
+        return new self(ResultKind::Template, template: new Template($name, $title, $values, $tabs, $parent));
     }
 
     /**

@@ -13,7 +13,8 @@ use Contenir\Extension\Api\Operation\Operation;
  * A screen described as data, which the host draws inside the dashboard
  * layout: a title and introduction, then a form, a table and operations,
  * each optional, and a row of tabs under the header leading to the other
- * screens about the same record.
+ * screens about the same record. A screen that belongs under another page,
+ * such as one record's, names it as its parent, for the breadcrumb.
  *
  * @api
  */
@@ -34,6 +35,7 @@ final readonly class Screen
         public ?Table $table = null,
         public array $operations = [],
         public array $tabs = [],
+        public ?ParentPage $parent = null,
     ) {
         Names::text('A screen title', $title);
     }

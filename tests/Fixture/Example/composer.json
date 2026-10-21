@@ -1,11 +1,11 @@
 {
     "name": "contenir-extension/example",
-    "description": "The example add-on for Contenir CMS: a settings section, a listener, a signed webhook and a check, built against contenir/extension-api alone.",
+    "description": "The example add-on for Contenir CMS: a settings section, a listener, a signed webhook and a check, built against contenir/contenir-extension-api alone.",
     "type": "contenir-extension",
     "license": "BSD-3-Clause",
     "require": {
         "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
-        "contenir/extension-api": "^0.1",
+        "contenir/contenir-extension-api": "^0.6",
         "psr/log": "^2.0 || ^3.0"
     },
     "require-dev": {

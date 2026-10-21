@@ -29,15 +29,16 @@ final readonly class WebhookResponse
 
     /**
      * A file for the browser to save as $filename, streamed by the host from
-     * what $writer writes, as an attachment that isn't cached.
+     * what $writer writes, as an attachment that isn't cached. It is always
+     * answered 200, as an admin handler's download is.
      *
      * @param Closure(resource): void $writer Writes the file to the stream it is given
      *
      * @throws InvalidDeclarationException When the name is empty or could break a header, or the media type is empty.
      */
-    public static function download(string $filename, string $mediaType, Closure $writer, int $status = 200): self
+    public static function download(string $filename, string $mediaType, Closure $writer): self
     {
-        return new self($status, '', $mediaType, new Download($filename, $mediaType, $writer));
+        return new self(200, '', $mediaType, new Download($filename, $mediaType, $writer));
     }
 
     public static function empty(int $status = 204): self

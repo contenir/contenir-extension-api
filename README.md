@@ -103,7 +103,7 @@ return HandlerResult::download('entries.csv', 'text/csv', static function ($stre
 });
 ```
 
-`WebhookResponse::download()` takes the same arguments, and a status.
+`WebhookResponse::download()` takes the same arguments.
 
 ## Events
 

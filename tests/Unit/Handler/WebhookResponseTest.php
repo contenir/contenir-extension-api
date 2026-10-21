@@ -17,15 +17,6 @@ use const NAN;
 final class WebhookResponseTest extends TestCase
 {
     #[Test]
-    public function answersADownloadWithAGivenStatus(): void
-    {
-        static::assertSame(
-            206,
-            WebhookResponse::download('form.pdf', 'application/pdf', static function ($stream): void {}, 206)->status,
-        );
-    }
-
-    #[Test]
     public function answersEmptyWithAGivenStatus(): void
     {
         static::assertSame(202, WebhookResponse::empty(202)->status);

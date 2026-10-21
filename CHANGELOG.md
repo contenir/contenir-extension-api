@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - 2026-10-21
+
+### Added
+
+- Private storage: `Storage\StorageProfile::PRIVATE` names the profile no URL reaches, in the contenir/contenir-storage
+  `StorageManager` a host lends add-ons from `services()`, for files only a handler should send, such as a form's
+  uploads behind a signed link. `Testing\MemoryStorage::manager()` makes one in memory, with the site's storage as
+  its primary profile and the private profile, for a test to lend. contenir/contenir-storage is suggested, and
+  required only for development.
+
 ## [0.6.1] - 2026-10-21
 
 ### Changed

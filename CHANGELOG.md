@@ -4,7 +4,11 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] - 2026-10-21
+## [0.7.0] - 2026-10-21
+
+One batched release for the form builder's move into an add-on: templates print their tabs, and hosts
+lend add-ons the site's mail, private storage and settings, with downloads and parent pages for screens.
+The changes below are additions for add-ons; only hosts must implement the new methods.
 
 ### Added
 

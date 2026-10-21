@@ -4,6 +4,36 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - 2026-10-21
+
+### Added
+
+- `TemplateHelpersInterface::tabs()` draws a template's tabs as the host draws a described screen's, for the template
+  to print under its own header (a form's fields editor or preview). A template without tabs draws an empty string.
+  `InMemoryTemplates` draws them as a list of links with the current one marked, and
+  `AbstractModuleConformanceTestCase` checks they are drawn where the template prints them.
+- Mail (phase 9, for the form builder's Preview): `Mail\MailerInterface` sends a `Mail\Message` (its recipients,
+  subject, HTML and text, and optionally who it is from and who replies go to) the way the site sends its own mail.
+  A host that sends mail offers it from each add-on's `services()`, named by the interface; an add-on asks `has()`
+  first. `Exception\MailFailedException` says a message couldn't be sent, and `Testing\MemoryMailer` keeps what it
+  is sent, or fails every message.
+- Downloads: `HandlerResult::download($filename, $mediaType, $writer)` and `WebhookResponse::download(...)` answer with
+  a file, such as a form's entries as CSV or an upload behind a signed link. The host streams what the writer writes to
+  the stream it is given, as an attachment with that name, not cached, so a large file is never held whole. A name
+  holding quotes, slashes or control characters is refused. The probe add-on gains an `export` handler and a `file`
+  webhook, and `AbstractHandlerConformanceTestCase` checks both.
+- Parent pages: a `Handler\ParentPage` names the page a screen belongs under, with its title and one of the add-on's
+  handlers to link to, given as `Screen`'s `parent` or `HandlerResult::template(..., parent: ...)`. The host draws it
+  in the breadcrumb between the area and the screen, so a form's notification reads Forms › the form › the
+  notification. The in-memory host draws it before a template, or before a described screen's title, and
+  `AbstractModuleConformanceTestCase` checks a template is shown under its parent. The probe module gains a `detail`
+  handler.
+
+### Changed
+
+- `TemplateHelpersInterface` gains `tabs()`, so a host implementing it must add it.
+- `ResultKind` gains `Download`, so a host matching on it must answer one.
+
 ## [0.6.1] - 2026-10-21
 
 ### Changed
@@ -17,13 +47,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Tabs on template screens: `Template::$tabs`, given as `HandlerResult::template($name, $title, $values, $tabs)`, and
-  `TemplateHelpersInterface::tabs()`, which draws them as the host draws a described screen's for the template to
-  print under its own header. A module's template screens (a form's fields editor or preview) share a row of tabs
-  with its described ones. A template without tabs draws an empty string. `InMemoryTemplates` draws them as a list
-  of links with the current one marked.
-- `AbstractModuleConformanceTestCase` checks a template's tabs are drawn where it prints them, with the current one
-  marked.
+- Tabs on template screens: `Template::$tabs`, given as `HandlerResult::template($name, $title, $values, $tabs)`. The
+  host draws them as it does a described screen's, so a module's template screens share a row of tabs with its
+  described ones. A template without tabs is drawn as before.
 - Services (P13): `Registry::provide($interface, $factory)` declares a service the host asks for by interface, such as
   the CDN purger core calls. A `Service\ServiceFactoryInterface` makes it with the add-on's context, once, and only
   while the add-on is enabled. When several enabled add-ons provide one interface, the first to load provides it and
@@ -34,22 +60,10 @@ adheres to [Semantic Versioning](https://semver.org/).
 - `HostDriverInterface::operate()` and `provided()`, with `Conformance\AbstractServiceConformanceTestCase` and
   operation tests in `AbstractSettingsConformanceTestCase`. The in-memory host runs settings operations and provides
   services. The probe add-on gains two operations, three services and a rival add-on (`Probe\RivalExtension`).
-- Mail (phase 9, for the form builder's Preview): `Mail\MailerInterface` sends a `Mail\Message` (its recipients,
-  subject, HTML and text, and optionally who it is from and who replies go to) the way the site sends its own mail.
-  A host that sends mail offers it from each add-on's `services()`, named by the interface; an add-on asks `has()`
-  first. `Exception\MailFailedException` says a message couldn't be sent, and `Testing\MemoryMailer` keeps what it
-  is sent, or fails every message.
-- Downloads: `HandlerResult::download($filename, $mediaType, $writer)` and `WebhookResponse::download(...)` answer with
-  a file, such as a form's entries as CSV or an upload behind a signed link. The host streams what the writer writes to
-  the stream it is given, as an attachment with that name, not cached, so a large file is never held whole. A name
-  holding quotes, slashes or control characters is refused. The probe add-on gains an `export` handler and a `file`
-  webhook, and `AbstractHandlerConformanceTestCase` checks both.
 
 ### Changed
 
 - `OperationContextInterface` and `HostDriverInterface` each gain methods, so a host implementing them must add them.
-- `TemplateHelpersInterface` gains `tabs()`, so a host implementing it must add it.
-- `ResultKind` gains `Download`, so a host matching on it must answer one.
 
 ## [0.5.0] - 2026-10-20
 

@@ -8,6 +8,7 @@ use Contenir\Extension\Api\Handler\Download;
 use Contenir\Extension\Api\Handler\Fragment;
 use Contenir\Extension\Api\Handler\HandlerResult;
 use Contenir\Extension\Api\Handler\ResultKind;
+use Contenir\Extension\Api\Handler\Screen;
 use Contenir\Extension\Api\Handler\Template;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Testing\InMemoryTemplates;
@@ -48,6 +49,15 @@ final readonly class Responder
     private static function none(): never
     {
         throw new LogicException('A template result names no template');
+    }
+
+    /**
+     * A described screen as its title, after the page it belongs under when
+     * it names one.
+     */
+    private static function screen(Screen $screen): string
+    {
+        return null === $screen->parent ? $screen->title : "{$screen->parent->title} › {$screen->title}";
     }
 
     public function body(int $status, string $contentType, string $body): ResponseInterface
@@ -98,7 +108,7 @@ final readonly class Responder
                 'Location',
                 $result->url ?? "/admin/settings/{$handle->value}",
             ),
-            ResultKind::Screen   => $this->body(200, 'text/plain', $result->screen->title ?? ''),
+            ResultKind::Screen   => $this->body(200, 'text/plain', self::screen($result->screen ?? self::none())),
             ResultKind::Template => $this->body(
                 200,
                 'text/html',
@@ -126,11 +136,25 @@ final readonly class Responder
     {
         $templates = $registration->module->templates
             ?? throw new LogicException(sprintf('Add-on "%s" has no templates', $registration->handle->value));
-
-        return (new InMemoryTemplates(
+        $view = new InMemoryTemplates(
             $registration->handle,
             $templates,
             $template instanceof Template ? $template->tabs : [],
-        ))->render($template->name, $template->values);
+        );
+        $parent = $template instanceof Template ? $template->parent : null;
+
+        return (
+            (
+                null === $parent
+                    ? ''
+                    : sprintf(
+                        '<nav aria-label="Breadcrumb"><a href="%s">%s</a> › %s</nav>',
+                        $view->escape($view->url($parent->handler, $parent->query)),
+                        $view->escape($parent->title),
+                        $view->escape($template instanceof Template ? $template->title : ''),
+                    )
+            )
+                . $view->render($template->name, $template->values)
+        );
     }
 }

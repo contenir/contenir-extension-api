@@ -175,7 +175,9 @@ about the same record:
 return HandlerResult::template('fields', 'Fields', ['form' => $form]);
 ```
 
-The host draws the dashboard around it, with the title in its header and breadcrumb. For a script on one of the
+The host draws the dashboard around it, with the title in its header and breadcrumb. A screen or template that
+belongs under another page, such as one record's, names it as its `parent` (a `Handler\ParentPage`, with a title and
+one of the add-on's handlers), and the breadcrumb shows it between the area and the screen. For a script on one of the
 module's screens, `HandlerResult::fragment('builder/row', $values)` draws a template alone, as HTML to put in place. The template is
 `<templates>/fields.phtml` and runs with two variables: `$values`, as the handler passed them, and `$view`, a
 `Module\TemplateHelpersInterface` for escaping, URLs to the module's handlers and assets, the form token, icons and

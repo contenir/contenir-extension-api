@@ -113,6 +113,22 @@ abstract class AbstractModuleConformanceTestCase extends AbstractConformanceTest
     }
 
     #[Test]
+    public function aTemplateIsShownUnderThePageItNamesAsItsParent(): void
+    {
+        $body = (string) $this->host
+            ->handle($this->request('/admin/extension/probe-module/detail'), [ProbeModuleExtension::AREA])
+            ->getBody();
+
+        static::assertSame(
+            [true, true],
+            [
+                str_contains($body, 'href="/admin/extension/probe-module/notes?page=3"'),
+                str_contains($body, 'Fish &amp; chips'),
+            ],
+        );
+    }
+
+    #[Test]
     public function aTemplatePrintsItsTabsWhereItAsks(): void
     {
         $body = (string) $this->host

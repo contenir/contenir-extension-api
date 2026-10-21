@@ -142,6 +142,19 @@ final class InMemoryHostTest extends TestCase
     }
 
     #[Test]
+    public function drawsADescribedScreenUnderThePageItNames(): void
+    {
+        $response = $this->host->handle(
+            $this->http
+                ->createServerRequest('GET', '/admin/extension/edge/screen')
+                ->withQueryParams(['under' => 'parent']),
+            ['extension.edge.screen'],
+        );
+
+        static::assertSame('Newsletter › Subscribers', (string) $response->getBody());
+    }
+
+    #[Test]
     public function failsACheckThatThrows(): void
     {
         $result = $this->host->check('edge', 'explode');

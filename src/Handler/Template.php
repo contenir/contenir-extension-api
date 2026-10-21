@@ -18,7 +18,8 @@ use Contenir\Extension\Api\Internal\Names;
  * Module\TemplateHelpersInterface. Its $tabs are what $view->tabs() draws,
  * as the host draws a described screen's; the template prints them under its
  * own header, so a module's template screens can share a row of tabs with its
- * described ones.
+ * described ones. Its $parent, when it names one, is drawn in the
+ * breadcrumb between the area and $title.
  *
  * @api
  */
@@ -35,6 +36,7 @@ final readonly class Template
         public string $title,
         public array $values = [],
         public array $tabs = [],
+        public ?ParentPage $parent = null,
     ) {
         Names::template($name);
         Names::text('A template title', $title);

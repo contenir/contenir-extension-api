@@ -37,6 +37,7 @@ final readonly class ProbeModuleExtension implements ExtensionInterface
         $registry->templates(__DIR__ . '/templates');
         $registry->menu(ProbeMenu::class);
         $registry->handler('page', PageHandler::class);
+        $registry->handler('detail', DetailHandler::class);
         $registry->handler('notes', NotesHandler::class);
         $registry->handler('notes-part', NotesPartHandler::class);
         $registry->handler('remove', NotesHandler::class, Privilege::Delete);

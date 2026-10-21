@@ -14,4 +14,5 @@ enum ResultKind
     case Screen;
     case Template;
     case Fragment;
+    case Download;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Testing\Internal;
 
+use Contenir\Extension\Api\Handler\Download;
 use Contenir\Extension\Api\Handler\Fragment;
 use Contenir\Extension\Api\Handler\HandlerResult;
 use Contenir\Extension\Api\Handler\ResultKind;
@@ -17,7 +18,10 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Throwable;
 
+use function assert;
+use function fopen;
 use function json_encode;
+use function rewind;
 use function sprintf;
 
 use const JSON_THROW_ON_ERROR;
@@ -35,7 +39,7 @@ final readonly class Responder
     ) {}
 
     /**
-     * A template or fragment result always names its template; this is for the type checker.
+     * A template, fragment or download result always carries what its kind needs; this is for the type checker.
      *
      * @throws LogicException Always.
      *
@@ -54,9 +58,28 @@ final readonly class Responder
     }
 
     /**
+     * The file as the host sends one: an attachment named for it, not
+     * cached, holding what its writer wrote.
+     */
+    public function download(int $status, Download $download): ResponseInterface
+    {
+        $file = fopen('php://memory', mode: 'w+b');
+        assert(false !== $file, description: 'PHP opens a memory stream');
+        ($download->writer)($file);
+        rewind($file);
+
+        return $this->status($status)
+            ->withHeader('Content-Type', $download->mediaType)
+            ->withHeader('Content-Disposition', "attachment; filename=\"{$download->filename}\"")
+            ->withHeader('Cache-Control', 'no-store')
+            ->withBody($this->streams->createStreamFromResource($file));
+    }
+
+    /**
      * JSON as JSON, a redirect to its URL or back to the add-on's settings,
-     * a described screen as its title, and a template or fragment as it
-     * draws (the in-memory host draws nothing around any of them).
+     * a described screen as its title, a template or fragment as it draws
+     * (the in-memory host draws nothing around any of them), and a download
+     * as an attachment.
      *
      * @throws JsonException  When a JSON result cannot be encoded.
      * @throws LogicException When the add-on has no such template.
@@ -87,6 +110,7 @@ final readonly class Responder
                 'text/html',
                 $this->template($result->fragment ?? self::none(), $registration),
             ),
+            ResultKind::Download => $this->download(200, $result->download ?? self::none()),
         };
     }
 

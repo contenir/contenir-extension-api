@@ -40,7 +40,9 @@ final readonly class Webhooks
 
             $answer = $webhook->handle($request, $context);
 
-            return $this->responder->body($answer->status, $answer->contentType, $answer->body);
+            return null === $answer->download
+                ? $this->responder->body($answer->status, $answer->contentType, $answer->body)
+                : $this->responder->download($answer->status, $answer->download);
         } catch (Throwable $failure) {
             $this->runtime->report($registration->handle, FailurePoint::Webhook, $name, $failure);
 

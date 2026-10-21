@@ -92,6 +92,19 @@ final class NewsletterExtension implements ExtensionInterface
 
 A host reads everything declared back with `Registry::registration()`.
 
+A handler or webhook can answer with a file to save, such as an export or an upload behind a signed link. The host
+streams what the writer writes, as an attachment that isn't cached, so a large file is never held whole:
+
+```php
+return HandlerResult::download('entries.csv', 'text/csv', static function ($stream) use ($rows): void {
+    foreach ($rows as $row) {
+        fputcsv($stream, $row);
+    }
+});
+```
+
+`WebhookResponse::download()` takes the same arguments, and a status.
+
 ## Events
 
 Add-ons react to what happens in the CMS through events named `<Type>Pre<Action>`, `<Type><Action>` and
@@ -225,7 +238,7 @@ A host proves it implements the API by running the conformance suite: abstract P
 | `AbstractStagesConformanceTestCase` | the three stages of a save: Pre changes values, stops or holds a save; the main stage rolls back on failure; Post runs after, whatever happened, in the background by default |
 | `AbstractBindingConformanceTestCase` | listeners run only where a site binds them, within their field scope, in the site's order |
 | `AbstractContextConformanceTestCase` | an add-on's context names it, stamps its log entries, and refuses core events and recurring chains |
-| `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST |
+| `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST; downloads from both, as attachments |
 | `AbstractModuleConformanceTestCase` | a module's handlers answer with its templates, values escaped, behind its area's or section's resource and the privilege each declares |
 | `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events; operations on its section run with its context, behind their privilege on `settings.<category>.<section>` |
 | `AbstractServiceConformanceTestCase` | services add-ons provide: made once with the add-on's context, only while it is enabled, from the first to load; a failing factory is reported and provides nothing |

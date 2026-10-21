@@ -38,6 +38,13 @@ interface TemplateHelpersInterface
     public function render(string $template, array $values = []): string;
 
     /**
+     * The template's tabs as the host draws a described screen's, ready to
+     * print under the template's own header; empty when it has none. A
+     * template given tabs prints this where they belong.
+     */
+    public function tabs(): string;
+
+    /**
      * The hidden field a form posting to one of the module's handlers must
      * carry, ready to print.
      */

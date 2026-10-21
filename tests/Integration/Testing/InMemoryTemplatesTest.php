@@ -6,6 +6,7 @@ namespace Contenir\Extension\Api\Tests\Integration\Testing;
 
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Handler\Tab;
 use Contenir\Extension\Api\Testing\InMemoryTemplates;
 use LogicException;
 use Override;
@@ -26,6 +27,29 @@ final class InMemoryTemplatesTest extends TestCase
     public function drawsATemplateWithItsValues(): void
     {
         static::assertSame("<p>Tea &amp; cake</p>\n", $this->templates->render('home', ['note' => 'Tea & cake']));
+    }
+
+    #[Test]
+    public function drawsItsTabsAsLinksWithTheCurrentOneMarked(): void
+    {
+        $templates = new InMemoryTemplates(new Handle('fixture'), '/nowhere', [
+            new Tab('Notes & lists', 'notes', ['page' => 2, 'sort' => 'title']),
+            new Tab('Settings', 'settings', current: true),
+        ]);
+
+        static::assertSame(
+            '<nav class="tabs">'
+                . '<a href="/admin/extension/fixture/notes?page=2&amp;sort=title">Notes &amp; lists</a>'
+                . '<a href="/admin/extension/fixture/settings" aria-current="page">Settings</a>'
+                . '</nav>',
+            $templates->tabs(),
+        );
+    }
+
+    #[Test]
+    public function drawsNoTabsForATemplateWithout(): void
+    {
+        static::assertSame('', $this->templates->tabs());
     }
 
     #[Test]

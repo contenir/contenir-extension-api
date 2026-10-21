@@ -19,5 +19,6 @@ enum FailurePoint: string
     case Operation = 'operation';
     case Panel     = 'panel';
     case Schedule  = 'schedule';
+    case Service   = 'service';
     case Webhook   = 'webhook';
 }

@@ -30,6 +30,8 @@ use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Schedule\Frequency;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Script\ScriptDeclaration;
+use Contenir\Extension\Api\Service\ServiceDeclaration;
+use Contenir\Extension\Api\Service\ServiceFactoryInterface;
 use Contenir\Extension\Api\Settings\SettingsCategory;
 use Contenir\Extension\Api\Settings\SettingsSection;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ApiKeyCheck;
@@ -37,6 +39,9 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\ConnectHandler;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\Event\SubscriberPostSync;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\Event\SubscriberSync;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ListFieldType;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\MailingListFactory;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\MailingListInterface;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\PurgeHandler;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ResyncTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ShadeFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
@@ -260,6 +265,12 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function declaresNoServicesUntilAsked(): void
+    {
+        static::assertSame([], (new Registry('newsletter'))->registration()->services);
+    }
+
+    #[Test]
     public function declaresRecordPanels(): void
     {
         $registry = new Registry('newsletter');
@@ -293,6 +304,23 @@ final class RegistryTest extends TestCase
         static::assertEquals(
             ['signup' => new ScriptDeclaration('signup', SignupScripts::class)],
             $registry->registration()->scripts,
+        );
+    }
+
+    #[Test]
+    public function declaresServicesByTheirInterface(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->provide(MailingListInterface::class, MailingListFactory::class);
+
+        static::assertEquals(
+            [
+                MailingListInterface::class => new ServiceDeclaration(
+                    MailingListInterface::class,
+                    MailingListFactory::class,
+                ),
+            ],
+            $registry->registration()->services,
         );
     }
 
@@ -885,6 +913,39 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('Webhook "unsubscribe" is already declared');
 
         $registry->webhook('unsubscribe', SignedWebhook::class);
+    }
+
+    #[Test]
+    public function rejectsAServiceFactoryOfTheWrongKind(): void
+    {
+        $this->expectExceptionObject(InvalidDeclarationException::notImplementing(
+            'Service factory',
+            PurgeHandler::class,
+            ServiceFactoryInterface::class,
+        ));
+
+        (new Registry('newsletter'))->provide(MailingListInterface::class, PurgeHandler::class);
+    }
+
+    #[Test]
+    public function rejectsAServiceProvidedTwice(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->provide(MailingListInterface::class, MailingListFactory::class);
+
+        $this->expectExceptionObject(InvalidDeclarationException::duplicate('service', MailingListInterface::class));
+
+        $registry->provide(MailingListInterface::class, MailingListFactory::class);
+    }
+
+    #[Test]
+    public function rejectsAServiceThatIsNotAnInterface(): void
+    {
+        $this->expectExceptionObject(InvalidDeclarationException::because(
+            sprintf('Service "%s" must be an interface', MailingListFactory::class),
+        ));
+
+        (new Registry('newsletter'))->provide(MailingListFactory::class, MailingListFactory::class);
     }
 
     #[Test]

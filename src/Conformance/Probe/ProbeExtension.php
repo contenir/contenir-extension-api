@@ -18,6 +18,7 @@ use Contenir\Extension\Api\Form\Field;
 use Contenir\Extension\Api\Form\Form;
 use Contenir\Extension\Api\Listener\Delivery;
 use Contenir\Extension\Api\Listener\Scope;
+use Contenir\Extension\Api\Operation\Operation;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Settings\SettingsCategory;
 use Contenir\Extension\Api\Settings\SettingsSection;
@@ -74,7 +75,15 @@ final readonly class ProbeExtension implements ExtensionInterface
             title: 'Probe',
             category: SettingsCategory::System,
             form: new Form([new Field('note', 'Note', default: 'none yet'), new Field('colour', 'Colour')]),
+            operations: [
+                new Operation('note', 'Note', 'pencil', 'update', NoteOperation::class),
+                new Operation('broken', 'Break', 'alert', 'update', BrokenOperation::class),
+            ],
         ));
+
+        $registry->provide(ProbeServiceInterface::class, ProbeServiceFactory::class);
+        $registry->provide(BrokenServiceInterface::class, BrokenServiceFactory::class);
+        $registry->provide(WrongServiceInterface::class, WrongServiceFactory::class);
 
         $registry->handler('status', StatusHandler::class);
         $registry->handler('remember', Remember::class);

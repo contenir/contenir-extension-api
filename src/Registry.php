@@ -31,10 +31,13 @@ use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Schedule\ScheduledTaskInterface;
 use Contenir\Extension\Api\Script\ScriptDeclaration;
 use Contenir\Extension\Api\Script\ScriptProviderInterface;
+use Contenir\Extension\Api\Service\ServiceDeclaration;
+use Contenir\Extension\Api\Service\ServiceFactoryInterface;
 use Contenir\Extension\Api\Settings\SettingsSection;
 
 use function array_key_exists;
 use function array_values;
+use function interface_exists;
 use function sprintf;
 use function str_starts_with;
 
@@ -132,6 +135,11 @@ final class Registry
      * @var array<string, Handle>
      */
     private array $dependencies = [];
+
+    /**
+     * @var array<string, ServiceDeclaration> By the interface provided
+     */
+    private array $services = [];
 
     /**
      * @throws InvalidDeclarationException When the handle is malformed or reserved.
@@ -360,6 +368,30 @@ final class Registry
     }
 
     /**
+     * A service the host asks for by interface, such as a CDN purger core
+     * calls (Contenir\Cdn\PurgerInterface). $factory makes it with the
+     * add-on's context, and only while the add-on is enabled, so disabling
+     * the add-on takes the service away. When several enabled add-ons provide
+     * one interface, the host uses the first to load and logs the others.
+     *
+     * @param class-string                          $service
+     * @param class-string<ServiceFactoryInterface> $factory
+     *
+     * @throws InvalidDeclarationException When $service is not an interface, the factory is not a service factory, or the add-on already provides $service.
+     */
+    public function provide(string $service, string $factory): void
+    {
+        if (! interface_exists($service)) {
+            throw InvalidDeclarationException::because(sprintf('Service "%s" must be an interface', $service));
+        }
+
+        $this->services[$this->free('service', $service, $this->services)] = new ServiceDeclaration(
+            $service,
+            Names::implementing('Service factory', $factory, ServiceFactoryInterface::class),
+        );
+    }
+
+    /**
      * Everything declared so far.
      */
     public function registration(): Registration
@@ -385,6 +417,7 @@ final class Registry
             ),
             dependencies: $this->dependencies,
             panels: $this->panels,
+            services: $this->services,
         );
     }
 

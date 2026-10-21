@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - 2026-10-21
+
+### Added
+
+- Site settings: `Settings\SiteSettingsInterface` lends add-ons every one of the site's own settings, read-only, from
+  `services()`, by a dotted key such as `contact.telephone`, as text (null when unset or holding many values), so a
+  form's `{settings:*}` notification tokens keep working. `Testing\MemorySiteSettings` holds them in memory for a test
+  to lend.
+
 ## [0.6.1] - 2026-10-21
 
 ### Changed

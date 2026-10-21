@@ -205,6 +205,10 @@ add-on asks `has()` for first: the site's mail (`Mail\MailerInterface`) and its 
 `StorageManager`, whose profiles include `Storage\StorageProfile::PRIVATE`, which no URL reaches). In tests,
 `Testing\MemoryMailer` and `Testing\MemoryStorage::manager()` stand in for them.
 
+A host may also lend add-ons the site's own settings, read-only, from `services()` as
+`Settings\SiteSettingsInterface`, which an add-on asks `has()` for first: `get('contact.telephone')` reads a setting
+by its dotted key as text. `Testing\MemorySiteSettings` holds them in memory for tests.
+
 The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
 `Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
 `IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for

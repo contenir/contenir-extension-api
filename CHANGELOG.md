@@ -34,6 +34,10 @@ adheres to [Semantic Versioning](https://semver.org/).
   uploads behind a signed link. `Testing\MemoryStorage::manager()` makes one in memory, with the site's storage as
   its primary profile and the private profile, for a test to lend. contenir/contenir-storage is suggested, and
   required only for development.
+- Site settings: `Settings\SiteSettingsInterface` lends add-ons every one of the site's own settings, read-only, from
+  `services()`, by a dotted key such as `contact.telephone`, as text (null when unset or holding many values), so a
+  form's `{settings:*}` notification tokens keep working. `Testing\MemorySiteSettings` holds them in memory for a test
+  to lend.
 
 ### Changed
 

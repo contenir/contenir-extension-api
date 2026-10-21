@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Tests\Unit\Handler;
 
+use Contenir\Extension\Api\Handler\Download;
 use Contenir\Extension\Api\Handler\WebhookResponse;
 use JsonException;
 use PHPUnit\Framework\Attributes\Group;
@@ -34,6 +35,18 @@ final class WebhookResponseTest extends TestCase
     }
 
     #[Test]
+    public function answersWithADownload(): void
+    {
+        $writer   = static function ($stream): void {};
+        $response = WebhookResponse::download('form.pdf', 'application/pdf', $writer);
+
+        static::assertEquals(
+            [200, '', 'application/pdf', new Download('form.pdf', 'application/pdf', $writer)],
+            [$response->status, $response->body, $response->contentType, $response->download],
+        );
+    }
+
+    #[Test]
     public function answersWithJson(): void
     {
         $response = WebhookResponse::json(['received' => true]);
@@ -50,6 +63,12 @@ final class WebhookResponseTest extends TestCase
         $response = WebhookResponse::empty();
 
         static::assertSame([204, '', 'text/plain'], [$response->status, $response->body, $response->contentType]);
+    }
+
+    #[Test]
+    public function answersWithoutADownloadOtherwise(): void
+    {
+        static::assertNull(WebhookResponse::text('ok')->download);
     }
 
     #[Test]

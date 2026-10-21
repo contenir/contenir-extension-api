@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Tests\Unit\Handler;
 
+use Contenir\Extension\Api\Handler\Download;
 use Contenir\Extension\Api\Handler\HandlerResult;
 use Contenir\Extension\Api\Handler\ResultKind;
 use Contenir\Extension\Api\Handler\Screen;
@@ -38,6 +39,18 @@ final class HandlerResultTest extends TestCase
     public function answersJsonWithOkByDefault(): void
     {
         static::assertSame(200, HandlerResult::json([])->status);
+    }
+
+    #[Test]
+    public function answersWithADownload(): void
+    {
+        $writer = static function ($stream): void {};
+        $result = HandlerResult::download('entries.csv', 'text/csv', $writer);
+
+        static::assertEquals(
+            [ResultKind::Download, new Download('entries.csv', 'text/csv', $writer)],
+            [$result->kind, $result->download],
+        );
     }
 
     #[Test]
@@ -90,6 +103,14 @@ final class HandlerResultTest extends TestCase
             [ResultKind::Redirect, null, null, 200, null, []],
             [$result->kind, $result->url, $result->json, $result->status, $result->screen, $result->messages],
         );
+    }
+
+    #[Test]
+    public function keepsADownloadWhenAMessageIsAdded(): void
+    {
+        $result = HandlerResult::download('entries.csv', 'text/csv', static function ($stream): void {});
+
+        static::assertSame($result->download, $result->withMessage('info', 'Exported')->download);
     }
 
     #[Test]

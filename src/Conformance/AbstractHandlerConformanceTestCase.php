@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Conformance;
 
+use Contenir\Extension\Api\Conformance\Probe\ExportHandler;
+use Contenir\Extension\Api\Conformance\Probe\FileHook;
 use Contenir\Extension\Api\Conformance\Probe\Hook;
 use Contenir\Extension\Api\Event\Extension\FailurePoint;
 use Override;
@@ -79,6 +81,34 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
     }
 
     #[Test]
+    public function anAdminHandlerSendsADownloadAsAnAttachment(): void
+    {
+        $response = $this->host->handle(
+            $this->request('GET', '/admin/extension/probe/export'),
+            ['extension.probe.export'],
+        );
+
+        static::assertSame(
+            [
+                200,
+                'text/csv',
+                'attachment; filename="' . ExportHandler::FILENAME . '"',
+                'no-store',
+                ExportHandler::CONTENT,
+                ['export'],
+            ],
+            [
+                $response->getStatusCode(),
+                $response->getHeaderLine('Content-Type'),
+                $response->getHeaderLine('Content-Disposition'),
+                $response->getHeaderLine('Cache-Control'),
+                (string) $response->getBody(),
+                $this->journal->entries(),
+            ],
+        );
+    }
+
+    #[Test]
     public function aWebhookAnswersAVerifiedRequestWithItsRawBody(): void
     {
         $response = $this->host->handle(
@@ -118,6 +148,25 @@ abstract class AbstractHandlerConformanceTestCase extends AbstractConformanceTes
         $response = $this->host->handle($this->request('POST', '/api/extension/probe/hook', 'payload'));
 
         static::assertSame([401, []], [$response->getStatusCode(), $this->journal->entries()]);
+    }
+
+    #[Test]
+    public function aWebhookSendsADownloadAsAnAttachment(): void
+    {
+        $response = $this->host->handle(
+            $this->request('GET', '/api/extension/probe/file')->withHeader(Hook::HEADER, Hook::SIGNATURE),
+        );
+
+        static::assertSame(
+            [200, 'text/plain', 'attachment; filename="' . FileHook::FILENAME . '"', 'no-store', FileHook::CONTENT],
+            [
+                $response->getStatusCode(),
+                $response->getHeaderLine('Content-Type'),
+                $response->getHeaderLine('Content-Disposition'),
+                $response->getHeaderLine('Cache-Control'),
+                (string) $response->getBody(),
+            ],
+        );
     }
 
     /**

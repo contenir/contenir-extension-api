@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Handler;
 
+use Closure;
+use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use JsonException;
 
 use function json_encode;
@@ -11,7 +13,8 @@ use function json_encode;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * What a public webhook answers with.
+ * What a public webhook answers with: nothing, JSON, text, or a file to
+ * download, which the host streams as a handler's download.
  *
  * @api
  */
@@ -21,7 +24,22 @@ final readonly class WebhookResponse
         public int $status,
         public string $body,
         public string $contentType,
+        public ?Download $download = null,
     ) {}
+
+    /**
+     * A file for the browser to save as $filename, streamed by the host from
+     * what $writer writes, as an attachment that isn't cached. It is always
+     * answered 200, as an admin handler's download is.
+     *
+     * @param Closure(resource): void $writer Writes the file to the stream it is given
+     *
+     * @throws InvalidDeclarationException When the name is empty or could break a header, or the media type is empty.
+     */
+    public static function download(string $filename, string $mediaType, Closure $writer): self
+    {
+        return new self(200, '', $mediaType, new Download($filename, $mediaType, $writer));
+    }
 
     public static function empty(int $status = 204): self
     {

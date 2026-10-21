@@ -127,6 +127,10 @@ final readonly class Responder
         $templates = $registration->module->templates
             ?? throw new LogicException(sprintf('Add-on "%s" has no templates', $registration->handle->value));
 
-        return (new InMemoryTemplates($registration->handle, $templates))->render($template->name, $template->values);
+        return (new InMemoryTemplates(
+            $registration->handle,
+            $templates,
+            $template instanceof Template ? $template->tabs : [],
+        ))->render($template->name, $template->values);
     }
 }

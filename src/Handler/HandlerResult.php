@@ -93,7 +93,8 @@ final readonly class HandlerResult
      * One of the module's templates, drawn inside the dashboard with $title
      * in its header. Only a module that declared templates may answer with
      * one; any other handler's template answer fails as the handler would.
-     * Its $tabs are drawn under the header, as a described screen's are.
+     * Its $tabs are what the template prints with $view->tabs(), drawn as a
+     * described screen's are.
      *
      * @param array<string, mixed> $values What the template sees as $values
      * @param list<Tab>            $tabs

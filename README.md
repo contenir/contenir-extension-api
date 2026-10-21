@@ -200,6 +200,11 @@ $secret   = $settings->get('secret', '');
 $settings->set(['token' => $token]);            // saves as the settings screen would, firing the settings events
 ```
 
+A host may also lend add-ons some of its own services from `services()`, named by interface or class, which an
+add-on asks `has()` for first: the site's mail (`Mail\MailerInterface`) and its storage (contenir/contenir-storage's
+`StorageManager`, whose profiles include `Storage\StorageProfile::PRIVATE`, which no URL reaches). In tests,
+`Testing\MemoryMailer` and `Testing\MemoryStorage::manager()` stand in for them.
+
 The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
 `Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
 `IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for

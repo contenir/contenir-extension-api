@@ -29,6 +29,12 @@ adheres to [Semantic Versioning](https://semver.org/).
   `AbstractModuleConformanceTestCase` checks a template is shown under its parent. The probe module gains a `detail`
   handler.
 
+- Private storage: `Storage\StorageProfile::PRIVATE` names the profile no URL reaches, in the contenir/contenir-storage
+  `StorageManager` a host lends add-ons from `services()`, for files only a handler should send, such as a form's
+  uploads behind a signed link. `Testing\MemoryStorage::manager()` makes one in memory, with the site's storage as
+  its primary profile and the private profile, for a test to lend. contenir/contenir-storage is suggested, and
+  required only for development.
+
 ### Changed
 
 - `TemplateHelpersInterface` gains `tabs()`, so a host implementing it must add it.

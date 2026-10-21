@@ -1,8 +1,8 @@
 # contenir-extension/example
 
 The example add-on for Contenir CMS, and the starting point for a new one. It is built against
-[contenir/extension-api](https://github.com/contenir/contenir-extension-api) alone and shows each part an add-on
-usually has:
+[contenir/contenir-extension-api](https://github.com/contenir/contenir-extension-api) alone and shows each part an
+add-on usually has:
 
 - a settings section, with a masked signing secret (`ExampleExtension`);
 - a listener that logs a record's new title once its save has gone through (`NoteTitle`), which a site binds to

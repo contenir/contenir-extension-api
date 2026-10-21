@@ -21,8 +21,8 @@ use Throwable;
 use function assert;
 use function fopen;
 use function json_encode;
-use function rewind;
 use function sprintf;
+use function stream_get_contents;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -66,13 +66,12 @@ final readonly class Responder
         $file = fopen('php://memory', mode: 'w+b');
         assert(false !== $file, description: 'PHP opens a memory stream');
         ($download->writer)($file);
-        rewind($file);
 
         return $this->status($status)
             ->withHeader('Content-Type', $download->mediaType)
             ->withHeader('Content-Disposition', "attachment; filename=\"{$download->filename}\"")
             ->withHeader('Cache-Control', 'no-store')
-            ->withBody($this->streams->createStreamFromResource($file));
+            ->withBody($this->streams->createStream((string) stream_get_contents($file, offset: 0)));
     }
 
     /**

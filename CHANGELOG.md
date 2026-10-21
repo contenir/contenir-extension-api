@@ -22,6 +22,12 @@ adheres to [Semantic Versioning](https://semver.org/).
   operation tests in `AbstractSettingsConformanceTestCase`. The in-memory host runs settings operations and provides
   services. The probe add-on gains two operations, three services and a rival add-on (`Probe\RivalExtension`).
 
+- Mail (phase 9, for the form builder's Preview): `Mail\MailerInterface` sends a `Mail\Message` (its recipients,
+  subject, HTML and text, and optionally who it is from and who replies go to) the way the site sends its own mail.
+  A host that sends mail offers it from each add-on's `services()`, named by the interface; an add-on asks `has()`
+  first. `Exception\MailFailedException` says a message couldn't be sent, and `Testing\MemoryMailer` keeps what it
+  is sent, or fails every message.
+
 ### Changed
 
 - `OperationContextInterface` and `HostDriverInterface` each gain methods, so a host implementing them must add them.

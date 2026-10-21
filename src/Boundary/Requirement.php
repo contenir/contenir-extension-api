@@ -31,7 +31,7 @@ final class Requirement
     /**
      * Requirements that are not packages, or that the boundary always allows.
      */
-    private const array IGNORED = ['php', 'contenir/extension-api'];
+    private const array IGNORED = ['php', 'contenir/contenir-extension-api', 'contenir/extension-api'];
 
     private const array PLATFORM = ['ext-', 'lib-', 'composer-'];
 

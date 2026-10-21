@@ -4,7 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] - 2026-10-21
+## [0.6.1] - 2026-10-21
+
+### Changed
+
+- Renamed to contenir/contenir-extension-api, to match its repository. It replaces contenir/extension-api, so a
+  project or add-on that still requires the old name gets this package, and never both. The namespaces are
+  unchanged.
+- The boundary allows an add-on to require the API by either name.
+
+## [0.6.0] - 2026-10-21
 
 ### Added
 

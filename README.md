@@ -1,4 +1,4 @@
-# contenir/extension-api
+# contenir/contenir-extension-api
 
 [![Continuous Integration](https://github.com/contenir/contenir-extension-api/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/contenir/contenir-extension-api/actions/workflows/continuous-integration.yml)
 [![codecov](https://codecov.io/gh/contenir/contenir-extension-api/graph/badge.svg)](https://codecov.io/gh/contenir/contenir-extension-api)
@@ -23,7 +23,7 @@ live under `Contenir\Extension\<Package>\`. Its composer.json names its handle a
     "name": "contenir-extension/newsletter",
     "type": "contenir-extension",
     "require": {
-        "contenir/extension-api": "^0.1"
+        "contenir/contenir-extension-api": "^0.6"
     },
     "autoload": {
         "psr-4": { "Contenir\\Extension\\Newsletter\\": "src/" }

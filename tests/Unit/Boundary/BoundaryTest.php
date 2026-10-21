@@ -39,11 +39,12 @@ final class BoundaryTest extends TestCase
     public static function ignoredProvider(): array
     {
         return [
-            'PHP'          => ['php'],
-            'an extension' => ['ext-json'],
-            'a library'    => ['lib-icu'],
-            'Composer'     => ['composer-plugin-api'],
-            'the API'      => ['contenir/extension-api'],
+            'PHP'                     => ['php'],
+            'an extension'            => ['ext-json'],
+            'a library'               => ['lib-icu'],
+            'Composer'                => ['composer-plugin-api'],
+            'the API'                 => ['contenir/contenir-extension-api'],
+            'the API by its old name' => ['contenir/extension-api'],
         ];
     }
 

@@ -27,6 +27,7 @@
     },
     "require-dev": {
         "contenir/contenir-qa-tools": "0.1.x-dev",
+        "contenir/contenir-storage": "^2.2",
         "infection/infection": "^0.34.1",
         "nyholm/psr7": "^1.8.2",
         "phpunit/phpunit": "^11.5.42"
@@ -36,7 +37,8 @@
     },
     "suggest": {
         "phpunit/phpunit": "Runs the conformance suite (Conformance\\Abstract*ConformanceTestCase) against a host",
-        "nyholm/psr7": "A PSR-7 and PSR-17 implementation for the in-memory host (Testing\\InMemoryHost), or use any other"
+        "nyholm/psr7": "A PSR-7 and PSR-17 implementation for the in-memory host (Testing\\InMemoryHost), or use any other",
+        "contenir/contenir-storage": "Lets a test lend an add-on storage with the private profile (Testing\\MemoryStorage), as a host lends its own"
     },
     "autoload": {
         "psr-4": {

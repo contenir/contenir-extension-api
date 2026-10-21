@@ -1,5 +1,5 @@
 {
-    "name": "contenir/extension-api",
+    "name": "contenir/contenir-extension-api",
     "description": "The add-on API for Contenir CMS: the contracts add-ons build against, the event catalogue, a conformance suite for hosts and an in-memory host. Framework free: PSR-3, PSR-7, PSR-11, PSR-14 and PSR-20 only.",
     "type": "library",
     "license": "BSD-3-Clause",
@@ -30,6 +30,9 @@
         "infection/infection": "^0.34.1",
         "nyholm/psr7": "^1.8.2",
         "phpunit/phpunit": "^11.5.42"
+    },
+    "replace": {
+        "contenir/extension-api": "self.version"
     },
     "suggest": {
         "phpunit/phpunit": "Runs the conformance suite (Conformance\\Abstract*ConformanceTestCase) against a host",

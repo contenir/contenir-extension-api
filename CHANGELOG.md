@@ -39,11 +39,17 @@ adheres to [Semantic Versioning](https://semver.org/).
   A host that sends mail offers it from each add-on's `services()`, named by the interface; an add-on asks `has()`
   first. `Exception\MailFailedException` says a message couldn't be sent, and `Testing\MemoryMailer` keeps what it
   is sent, or fails every message.
+- Downloads: `HandlerResult::download($filename, $mediaType, $writer)` and `WebhookResponse::download(...)` answer with
+  a file, such as a form's entries as CSV or an upload behind a signed link. The host streams what the writer writes to
+  the stream it is given, as an attachment with that name, not cached, so a large file is never held whole. A name
+  holding quotes, slashes or control characters is refused. The probe add-on gains an `export` handler and a `file`
+  webhook, and `AbstractHandlerConformanceTestCase` checks both.
 
 ### Changed
 
 - `OperationContextInterface` and `HostDriverInterface` each gain methods, so a host implementing them must add them.
 - `TemplateHelpersInterface` gains `tabs()`, so a host implementing it must add it.
+- `ResultKind` gains `Download`, so a host matching on it must answer one.
 
 ## [0.5.0] - 2026-10-20
 

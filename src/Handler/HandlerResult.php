@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Handler;
 
+use Closure;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 
 /**
  * What an admin handler answers with: a redirect with messages, JSON, a
- * described screen, or, for a module, one of its templates, drawn inside the
- * dashboard or alone as a fragment. The host turns it into its own response.
+ * described screen, a file to download, or, for a module, one of its
+ * templates, drawn inside the dashboard or alone as a fragment. The host
+ * turns it into its own response.
  *
  * @api
  */
@@ -29,6 +31,7 @@ final readonly class HandlerResult
         public array $messages = [],
         public ?Template $template = null,
         public ?Fragment $fragment = null,
+        public ?Download $download = null,
     ) {}
 
     /**
@@ -37,6 +40,20 @@ final readonly class HandlerResult
     public static function back(): self
     {
         return new self(ResultKind::Redirect);
+    }
+
+    /**
+     * A file for the browser to save as $filename: the host streams what
+     * $writer writes, as an attachment that isn't cached. Messages on it are
+     * shown on the next screen.
+     *
+     * @param Closure(resource): void $writer Writes the file to the stream it is given
+     *
+     * @throws InvalidDeclarationException When the name is empty or could break a header, or the media type is empty.
+     */
+    public static function download(string $filename, string $mediaType, Closure $writer): self
+    {
+        return new self(ResultKind::Download, download: new Download($filename, $mediaType, $writer));
     }
 
     /**
@@ -104,6 +121,7 @@ final readonly class HandlerResult
             [...$this->messages, ['level' => $level, 'text' => $text]],
             $this->template,
             $this->fragment,
+            $this->download,
         );
     }
 }

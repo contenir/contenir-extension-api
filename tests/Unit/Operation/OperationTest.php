@@ -77,6 +77,43 @@ final class OperationTest extends TestCase
         static::assertEquals(new Operation('purge', 'Purge', 'trash', 'purge', PurgeHandler::class), $operation);
     }
 
+    /**
+     * An operation declared against an earlier release names no `destructive`,
+     * and is read as one that destroys nothing.
+     */
+    #[Test]
+    public function isNotDestructiveWhenADeclarationLeavesItOut(): void
+    {
+        $operation = Operation::fromArray([
+            'name'      => 'purge',
+            'label'     => 'Purge',
+            'icon'      => 'trash',
+            'privilege' => 'purge',
+            'handler'   => PurgeHandler::class,
+        ]);
+
+        static::assertFalse($operation->destructive);
+    }
+
+    /**
+     * Asking first and destroying something are different: Clear cache asks
+     * and destroys nothing.
+     */
+    #[Test]
+    public function keepsAskingFirstApartFromDestroying(): void
+    {
+        $operation = new Operation(
+            'purge',
+            'Clear cache',
+            'trash',
+            'purge',
+            PurgeHandler::class,
+            confirm: true,
+        );
+
+        static::assertSame([true, false], [$operation->confirm, $operation->destructive]);
+    }
+
     #[Test]
     public function roundTripsThroughAnArray(): void
     {
@@ -91,6 +128,7 @@ final class OperationTest extends TestCase
             httpMethod: 'GET',
             confirm: true,
             confirmMessage: 'Sure?',
+            destructive: true,
         );
 
         static::assertEquals($operation, Operation::fromArray($operation->toArray()));
@@ -113,6 +151,7 @@ final class OperationTest extends TestCase
                 'httpMethod'     => 'POST',
                 'confirm'        => false,
                 'confirmMessage' => null,
+                'destructive'    => false,
             ],
             $operation->toArray(),
         );

@@ -18,6 +18,11 @@ use Contenir\Extension\Api\Internal\Values;
  * scalars only and fromArray() reads every field back. The host renders the
  * button from this metadata and dispatches to $handler when clicked.
  *
+ * $destructive marks an operation that destroys something a person cannot get
+ * back, such as deleting a form with its entries, so a host can draw it apart
+ * from the rest. It is not the same as $confirm: Clear cache asks first and
+ * destroys nothing.
+ *
  * @api
  */
 final readonly class Operation
@@ -38,6 +43,7 @@ final readonly class Operation
         public string $httpMethod = 'POST',
         public bool $confirm = false,
         public ?string $confirmMessage = null,
+        public bool $destructive = false,
     ) {}
 
     /**
@@ -62,6 +68,7 @@ final readonly class Operation
             httpMethod: Values::string($data, 'httpMethod', 'POST'),
             confirm: Values::bool($data, 'confirm'),
             confirmMessage: Values::nullableString($data, 'confirmMessage'),
+            destructive: Values::bool($data, 'destructive'),
         );
     }
 
@@ -81,6 +88,7 @@ final readonly class Operation
             'httpMethod'     => $this->httpMethod,
             'confirm'        => $this->confirm,
             'confirmMessage' => $this->confirmMessage,
+            'destructive'    => $this->destructive,
         ];
     }
 }

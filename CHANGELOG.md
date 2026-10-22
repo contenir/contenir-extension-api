@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] - 2026-10-22
+
+Hosts can tell an operation that destroys something from one that only asks first.
+
+### Added
+
+- `Operation`'s `destructive` says the operation destroys something a person cannot get back, such as deleting a form
+  with every entry, so a host can draw it apart from the rest. It is separate from `confirm`, which is about asking
+  rather than about what is lost: a "Clear cache" operation asks and destroys nothing. A declaration from an earlier
+  release names no `destructive` and is read as `false`, so nothing has to change to keep working. The parameter is
+  last, so positional callers are unaffected, but a named argument against 0.7.0 is a fatal error.
+
 ## [0.7.0] - 2026-10-21
 
 One batched release for the form builder's move into an add-on: templates print their tabs, and hosts

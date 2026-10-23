@@ -19,12 +19,28 @@ use function trim;
 /**
  * Modules (plan section 10): a module's handlers answer with its templates,
  * drawn with values escaped, behind its area's or section's permission and
- * the privilege each declares.
+ * the privilege each declares. A section a module adds to an existing area
+ * guards the handler it names, as its own sections do.
  *
  * @api
  */
 abstract class AbstractModuleConformanceTestCase extends AbstractConformanceTestCase
 {
+    #[Test]
+    public function aHandlerNamedBySectionAddedToAnExistingAreaIsGuardedByThatSection(): void
+    {
+        $answers = [
+            $this->host->handle($this->request('/admin/extension/probe-module/links'), [ProbeModuleExtension::LINKS]),
+            $this->host->handle($this->request('/admin/extension/probe-module/links'), [ProbeModuleExtension::AREA]),
+            $this->host->handle($this->request('/admin/extension/probe-module/notes'), [ProbeModuleExtension::LINKS]),
+        ];
+
+        static::assertSame(
+            [200, 403, 403],
+            [$answers[0]->getStatusCode(), $answers[1]->getStatusCode(), $answers[2]->getStatusCode()],
+        );
+    }
+
     #[Test]
     public function aHandlerNamedBySectionIsGuardedByThatSection(): void
     {

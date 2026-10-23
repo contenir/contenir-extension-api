@@ -30,6 +30,12 @@ final readonly class ProbeModuleExtension implements ExtensionInterface
      */
     public const string NOTES = 'probes.notes.list';
 
+    /**
+     * The section it adds to the existing Site Pages area, naming the links
+     * handler.
+     */
+    public const string LINKS = 'site.probe-links.links';
+
     #[Override]
     public function register(Registry $registry): void
     {
@@ -39,6 +45,7 @@ final readonly class ProbeModuleExtension implements ExtensionInterface
         $registry->handler('page', PageHandler::class);
         $registry->handler('detail', DetailHandler::class);
         $registry->handler('notes', NotesHandler::class);
+        $registry->handler('links', PageHandler::class);
         $registry->handler('notes-part', NotesPartHandler::class);
         $registry->handler('remove', NotesHandler::class, Privilege::Delete);
     }

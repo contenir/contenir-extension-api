@@ -167,6 +167,32 @@ a section names one of the module's handlers with `<handler>` to draw its screen
 A module's handlers are guarded by its area's ACL resource (`forms` above), or by the section that names them
 (`forms.exports.scheduled`), as the host's own screens are, so a role allowed the area keeps its screens.
 
+A module can also add categories to an area that already exists, such as the CMS's Site Pages, by naming that area
+and marking it `existing="true"`. The fragment then holds the module's own area, if it has one, and the areas it adds
+to:
+
+```xml
+<admin>
+    <site existing="true">
+        <category>
+            <navigation>
+                <title>Navigation</title>
+                <section>
+                    <menus>
+                        <title>Menus</title>
+                        <handler>menus</handler>
+                    </menus>
+                </section>
+            </navigation>
+        </category>
+    </site>
+</admin>
+```
+
+A handler named in such a section is guarded by it (`site.navigation.menus`), as one in the module's own area is. A
+module that adds to existing areas only has no area of its own, so any handler no section names keeps its own
+permission.
+
 A handler answers with a described screen where it can, and with one of the module's templates where it can't
 (decision M1). A described screen may carry a row of `Handler\Tab`s under its header, leading to the other screens
 about the same record:
@@ -209,6 +235,27 @@ A host may also lend add-ons the site's own settings, read-only, from `services(
 `Settings\SiteSettingsInterface`, which an add-on asks `has()` for first: `get('contact.telephone')` reads a setting
 by its dotted key as text. `Testing\MemorySiteSettings` holds them in memory for tests.
 
+A host may also lend add-ons the site's records from `services()` as `Record\RecordsInterface`, which an add-on asks
+`has()` for first, for add-ons that link to them, such as a menu's items. Only the sections the site marks as
+linkable are offered, each a `Record\LinkableSection` naming its records ("Page", "News article"), whether new ones
+can be made there, and the `Record\Workflow`s they can be made with:
+
+```php
+$records = $context->services()->get(RecordsInterface::class);
+
+$found   = $records->search('team', limit: 10);                       // list<RecordSummary>: title, status, path, edit URL
+$summary = $records->describe(new RecordReference('page', 12));       // null when it isn't there or isn't linkable
+$free    = $records->isPathFree('/about/our-team');
+
+$result = $records->create(new NewRecord('page', 'Our team', '/about/our-team', workflow: 'standard'));
+```
+
+`create()` makes a draft through the host's normal save path, so its validation, the extension events, holds and
+the editor's permission to add to the section all apply, and it answers with the save's `Event\ActionResult`: Done
+with the new id, or Stopped with field errors such as a path in use under `path`. When the add-on has a transaction
+open on the site's database, the record is written inside it and rolls back with it, so a record and the row that
+links to it are saved together or not at all.
+
 The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
 `Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
 `IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for
@@ -250,8 +297,9 @@ A host proves it implements the API by running the conformance suite: abstract P
 | `AbstractBindingConformanceTestCase` | listeners run only where a site binds them, within their field scope, in the site's order |
 | `AbstractContextConformanceTestCase` | an add-on's context names it, stamps its log entries, and refuses core events and recurring chains |
 | `AbstractHandlerConformanceTestCase` | admin handlers behind their ACL resource; public webhooks only once they verify, with GET and POST; downloads from both, as attachments |
-| `AbstractModuleConformanceTestCase` | a module's handlers answer with its templates, values escaped, behind its area's or section's resource and the privilege each declares |
+| `AbstractModuleConformanceTestCase` | a module's handlers answer with its templates, values escaped, behind its area's or section's resource and the privilege each declares, including a section it adds to an existing area |
 | `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events; operations on its section run with its context, behind their privilege on `settings.<category>.<section>` |
+| `AbstractRecordsConformanceTestCase` | the records lent to add-ons: only linkable sections are listed, searched, described and created in; a new record is a draft saved through the save path, which listeners can stop or fail and fields can hold, and needs the editor's permission to add |
 | `AbstractServiceConformanceTestCase` | services add-ons provide: made once with the add-on's context, only while it is enabled, from the first to load; a failing factory is reported and provides nothing |
 | `AbstractDiagnosticConformanceTestCase` | checks in the update check; fixes need `extension.<handle>.fix` and re-run the check |
 
@@ -285,6 +333,11 @@ $host->bind('member', 'newsletter', 'sync-subscriber', 'RecordPostSave', ['email
 $host->save('member', 1, ['email' => 'ann@example.com']);
 $host->runBackground();
 ```
+
+`linkable()` marks a section as linkable for the records it lends add-ons. A record's title, path and status are
+its `title`, `path` and `status` values, and each linkable section is its own ACL resource. While it answers a request
+the records act for an editor holding the request's grants; outside one, as when a test calls an add-on's classes with
+`context()`, for an editor allowed everything.
 
 `menu()` lists what a module's section menu shows for a request. It takes any PSR-17 factories for the requests
 and responses handlers see; `Testing\FrozenClock`,

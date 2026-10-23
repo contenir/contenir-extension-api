@@ -10,6 +10,7 @@ use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\ExtensionInterface;
 use Contenir\Extension\Api\Operation\OperationResultInterface;
+use Contenir\Extension\Api\Record\LinkableSection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -86,6 +87,16 @@ interface HostDriverInterface
      * @param list<string> $grants
      */
     public function handle(ServerRequestInterface $request, array $grants = []): ResponseInterface;
+
+    /**
+     * Marks a section as linkable, as the site's admin.xml does, after those
+     * already marked, so the records the host lends add-ons
+     * (Record\RecordsInterface) search, describe and create in it. Records in
+     * it are seeded with a "title", a "path" such as /about and a "status"
+     * (a Record\RecordStatus value), which the host maps to its own columns,
+     * and the section is its own ACL resource for creating.
+     */
+    public function linkable(LinkableSection $section): void;
 
     /**
      * The handles of the add-ons that loaded, in the order they loaded.

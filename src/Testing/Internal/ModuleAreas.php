@@ -17,14 +17,21 @@ use const LIBXML_NOWARNING;
 
 /**
  * Which permission guards a module's handler: the section whose <handler>
- * names it in the module's admin.xml, or else the module's area. Null for an
+ * names it in the module's admin.xml, whether in the module's own area or in
+ * an existing one it adds to, or else the module's own area. Null for an
  * add-on that is not a module, or whose admin.xml can't be read or holds no
- * area; its handlers keep their own.
+ * area of its own; its handlers keep their own.
  *
  * @internal
  */
 final class ModuleAreas
 {
+    /**
+     * The attribute marking an area in a module's admin.xml as one that
+     * already exists, which the module adds categories to.
+     */
+    public const string EXISTING = 'existing';
+
     public static function resource(Registration $registration, string $handler): ?string
     {
         $file = $registration->module->adminXml;
@@ -35,48 +42,35 @@ final class ModuleAreas
         $document = new DOMDocument();
         $document->load($file, LIBXML_NOERROR | LIBXML_NOWARNING);
 
-        $area = self::children($document->documentElement)[0] ?? null;
-        if (null === $area) {
-            return null;
+        $own = null;
+        foreach (Elements::children($document->documentElement) as $area) {
+            $section = self::section($area, $handler);
+            if (null !== $section) {
+                return $section;
+            }
+
+            if (null === $own && 'true' !== $area->getAttribute(self::EXISTING)) {
+                $own = $area->tagName;
+            }
         }
 
-        foreach (self::children(self::child($area, 'category')) as $category) {
-            foreach (self::children(self::child($category, 'section')) as $section) {
-                $named = self::child($section, 'handler');
+        return $own;
+    }
+
+    /**
+     * The resource of the section in $area whose <handler> names $handler.
+     */
+    private static function section(DOMElement $area, string $handler): ?string
+    {
+        foreach (Elements::children(Elements::child($area, 'category')) as $category) {
+            foreach (Elements::children(Elements::child($category, 'section')) as $section) {
+                $named = Elements::child($section, 'handler');
                 if (null !== $named && trim($named->textContent) === $handler) {
                     return sprintf('%s.%s.%s', $area->tagName, $category->tagName, $section->tagName);
                 }
             }
         }
 
-        return $area->tagName;
-    }
-
-    private static function child(?DOMElement $parent, string $name): ?DOMElement
-    {
-        foreach (self::children($parent) as $child) {
-            if ($name === $child->tagName) {
-                return $child;
-            }
-        }
-
         return null;
-    }
-
-    /**
-     * @return list<DOMElement>
-     */
-    private static function children(?DOMElement $parent): array
-    {
-        $children = [];
-        foreach ($parent->childNodes ?? [] as $node) {
-            if (! $node instanceof DOMElement) {
-                continue;
-            }
-
-            $children[] = $node;
-        }
-
-        return $children;
     }
 }

@@ -18,6 +18,8 @@ use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Module\MenuGroup;
 use Contenir\Extension\Api\Module\MenuInterface;
 use Contenir\Extension\Api\Operation\OperationResultInterface;
+use Contenir\Extension\Api\Record\LinkableSection;
+use Contenir\Extension\Api\Record\RecordsInterface;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Settings\SettingsInterface;
@@ -29,6 +31,8 @@ use Contenir\Extension\Api\Testing\Internal\BoundListener;
 use Contenir\Extension\Api\Testing\Internal\Chain;
 use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
+use Contenir\Extension\Api\Testing\Internal\Editor;
+use Contenir\Extension\Api\Testing\Internal\HostRecords;
 use Contenir\Extension\Api\Testing\Internal\Operations;
 use Contenir\Extension\Api\Testing\Internal\ProvidedServices;
 use Contenir\Extension\Api\Testing\Internal\Records;
@@ -61,6 +65,13 @@ use function sprintf;
  * Saving a record fires RecordPreSave, RecordSave and RecordPostSave, for new
  * records as for existing ones.
  *
+ * It lends add-ons its records as Record\RecordsInterface. A record's title,
+ * path and status are its "title", "path" and "status" values, and each
+ * linkable section is its own ACL resource. While a request is answered the
+ * records act for an editor holding the request's grants; outside one, as
+ * when a test calls an add-on's classes with context(), for an editor
+ * allowed everything.
+ *
  * @api
  *
  * @mago-expect lint:too-many-methods One method per thing the conformance suite drives, plus three for add-on tests.
@@ -87,6 +98,10 @@ final class InMemoryHost implements HostDriverInterface
     private readonly Operations $operations;
 
     private readonly ProvidedServices $provided;
+
+    private readonly Editor $editor;
+
+    private readonly HostRecords $hostRecords;
 
     /**
      * @var array<string, Registration> By handle
@@ -130,10 +145,13 @@ final class InMemoryHost implements HostDriverInterface
                 $this->dispatcher,
             ),
         );
-        $this->dispatcher = new Dispatcher($this->bindings, $this->runtime);
-        $this->checks     = new Checks($this->runtime);
-        $this->operations = new Operations($this->runtime);
-        $this->provided   = new ProvidedServices($this->runtime);
+        $this->dispatcher  = new Dispatcher($this->bindings, $this->runtime);
+        $this->checks      = new Checks($this->runtime);
+        $this->operations  = new Operations($this->runtime);
+        $this->provided    = new ProvidedServices($this->runtime);
+        $this->editor      = new Editor();
+        $this->hostRecords = new HostRecords($this->records, $this->dispatcher, $this->editor);
+        $this->services->add([RecordsInterface::class => $this->hostRecords]);
 
         $responder     = new Responder($responses, $streams);
         $this->answers = new Answers(
@@ -240,7 +258,18 @@ final class InMemoryHost implements HostDriverInterface
     #[Override]
     public function handle(ServerRequestInterface $request, array $grants = []): ResponseInterface
     {
-        return $this->answers->answer($this->registrations, $request, $grants);
+        $this->editor->signIn($grants);
+        try {
+            return $this->answers->answer($this->registrations, $request, $grants);
+        } finally {
+            $this->editor->signOut();
+        }
+    }
+
+    #[Override]
+    public function linkable(LinkableSection $section): void
+    {
+        $this->hostRecords->link($section);
     }
 
     #[Override]

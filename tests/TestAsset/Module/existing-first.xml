@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<admin>
+    <site existing="true">
+        <category>
+            <pages>
+                <section>
+                    <boom>
+                        <handler>boom</handler>
+                    </boom>
+                </section>
+            </pages>
+        </category>
+    </site>
+    <fixtures>
+        <title>Fixtures</title>
+    </fixtures>
+    <later>
+        <title>Later</title>
+    </later>
+</admin>

@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Tests\Unit\Testing\Internal;
 
+use Contenir\Extension\Api\Editor\Editor;
 use Contenir\Extension\Api\Handler\Privilege;
-use Contenir\Extension\Api\Testing\Internal\Editor;
+use Contenir\Extension\Api\Testing\Internal\SignedIn;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 #[Group('unit')]
-final class EditorTest extends TestCase
+final class SignedInTest extends TestCase
 {
     /**
      * @return array<string, array{list<string>, bool}>
@@ -31,20 +32,32 @@ final class EditorTest extends TestCase
     #[Test]
     public function mayAnythingOutsideARequest(): void
     {
-        $editor = new Editor();
-        $editor->signIn([]);
+        $editor = new SignedIn();
+        $editor->signIn([], null);
         $editor->signOut();
 
-        static::assertTrue((new Editor())->may('page', Privilege::Delete) && $editor->may('page', Privilege::Add));
+        static::assertTrue((new SignedIn())->may('page', Privilege::Delete) && $editor->may('page', Privilege::Add));
     }
 
     #[Test]
     #[DataProvider('grantProvider')]
     public function mayWhatTheRequestsGrantsHold(array $grants, bool $may): void
     {
-        $editor = new Editor();
-        $editor->signIn($grants);
+        $editor = new SignedIn();
+        $editor->signIn($grants, null);
 
         static::assertSame($may, $editor->may('page', Privilege::Add));
+    }
+
+    #[Test]
+    public function namesTheEditorSignedInUntilTheyAreSignedOut(): void
+    {
+        $signedIn = new SignedIn();
+        $editor   = new Editor(7, 'Ann Editor');
+        $signedIn->signIn([], $editor);
+        $during = $signedIn->current();
+        $signedIn->signOut();
+
+        static::assertSame([$editor, null], [$during, $signedIn->current()]);
     }
 }

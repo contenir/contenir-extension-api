@@ -7,6 +7,8 @@ namespace Contenir\Extension\Api\Testing;
 use Contenir\Extension\Api\Conformance\HostDriverInterface;
 use Contenir\Extension\Api\Context\ExtensionContextInterface;
 use Contenir\Extension\Api\Diagnostic\CheckResult;
+use Contenir\Extension\Api\Editor\CurrentEditorInterface;
+use Contenir\Extension\Api\Editor\Editor;
 use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Catalogue;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
@@ -31,7 +33,6 @@ use Contenir\Extension\Api\Testing\Internal\BoundListener;
 use Contenir\Extension\Api\Testing\Internal\Chain;
 use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
-use Contenir\Extension\Api\Testing\Internal\Editor;
 use Contenir\Extension\Api\Testing\Internal\HostRecords;
 use Contenir\Extension\Api\Testing\Internal\Operations;
 use Contenir\Extension\Api\Testing\Internal\ProvidedServices;
@@ -41,6 +42,7 @@ use Contenir\Extension\Api\Testing\Internal\Runtime;
 use Contenir\Extension\Api\Testing\Internal\Saver;
 use Contenir\Extension\Api\Testing\Internal\Services;
 use Contenir\Extension\Api\Testing\Internal\Settings;
+use Contenir\Extension\Api\Testing\Internal\SignedIn;
 use Contenir\Extension\Api\Testing\Internal\Webhooks;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use LogicException;
@@ -70,7 +72,8 @@ use function sprintf;
  * linkable section is its own ACL resource. While a request is answered the
  * records act for an editor holding the request's grants; outside one, as
  * when a test calls an add-on's classes with context(), for an editor
- * allowed everything.
+ * allowed everything. It lends Editor\CurrentEditorInterface too, naming the
+ * editor a request was answered for, and no one outside a request.
  *
  * @api
  *
@@ -99,7 +102,7 @@ final class InMemoryHost implements HostDriverInterface
 
     private readonly ProvidedServices $provided;
 
-    private readonly Editor $editor;
+    private readonly SignedIn $signedIn;
 
     private readonly HostRecords $hostRecords;
 
@@ -149,9 +152,12 @@ final class InMemoryHost implements HostDriverInterface
         $this->checks      = new Checks($this->runtime);
         $this->operations  = new Operations($this->runtime);
         $this->provided    = new ProvidedServices($this->runtime);
-        $this->editor      = new Editor();
-        $this->hostRecords = new HostRecords($this->records, $this->dispatcher, $this->editor);
-        $this->services->add([RecordsInterface::class => $this->hostRecords]);
+        $this->signedIn    = new SignedIn();
+        $this->hostRecords = new HostRecords($this->records, $this->dispatcher, $this->signedIn);
+        $this->services->add([
+            RecordsInterface::class       => $this->hostRecords,
+            CurrentEditorInterface::class => $this->signedIn,
+        ]);
 
         $responder     = new Responder($responses, $streams);
         $this->answers = new Answers(
@@ -256,13 +262,16 @@ final class InMemoryHost implements HostDriverInterface
     }
 
     #[Override]
-    public function handle(ServerRequestInterface $request, array $grants = []): ResponseInterface
-    {
-        $this->editor->signIn($grants);
+    public function handle(
+        ServerRequestInterface $request,
+        array $grants = [],
+        ?Editor $editor = null,
+    ): ResponseInterface {
+        $this->signedIn->signIn($grants, $editor);
         try {
             return $this->answers->answer($this->registrations, $request, $grants);
         } finally {
-            $this->editor->signOut();
+            $this->signedIn->signOut();
         }
     }
 

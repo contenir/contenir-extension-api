@@ -42,7 +42,7 @@ final class HostRecords implements RecordsInterface
     public function __construct(
         private readonly Records $records,
         private readonly Dispatcher $dispatcher,
-        private readonly Editor $editor,
+        private readonly SignedIn $signedIn,
     ) {}
 
     #[Override]
@@ -57,7 +57,7 @@ final class HostRecords implements RecordsInterface
             );
         }
 
-        if (! $this->editor->may($section->section, Privilege::Add)) {
+        if (! $this->signedIn->may($section->section, Privilege::Add)) {
             return new ActionResult(Outcome::Stopped, null, sprintf('You may not add to %s', $section->section));
         }
 

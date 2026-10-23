@@ -6,8 +6,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Two additions for the managed navigation add-on: add-ons can find, describe and create the site's records, and a
-module can add a section to an area that already exists, such as Site Pages. Hosts must implement both.
+Three additions for the managed navigation add-on: add-ons can find, describe and create the site's records, a module
+can add a section to an area that already exists, such as Site Pages, and add-ons can tell who is signed in. Hosts must
+implement all three.
 
 ### Added
 
@@ -25,10 +26,16 @@ module can add a section to an area that already exists, such as Site Pages. Hos
   exists, such as the CMS's `site`, and the categories under it are added to that area. A handler named in one of
   its sections is guarded by that section. A module may add to existing areas without an area of its own.
   `AbstractModuleConformanceTestCase` checks the probe module's section in `site`.
+- The editor: `Editor\CurrentEditorInterface` lends add-ons the editor signed in for the admin request being answered,
+  from `services()`, named by the interface; an add-on asks `has()` first. `current()` is an `Editor\Editor`, with the
+  editor's user id and name, or null when no one is signed in, as in a public webhook, a scheduled task or a
+  background listener. `Testing\InMemoryHost` lends it, naming the editor passed to `handle()`, and
+  `AbstractEditorConformanceTestCase` checks a host's, with an `editor` handler on the probe add-on.
 
 ### Changed
 
-- `Conformance\HostDriverInterface` gains `linkable()`, so a host's driver must add it.
+- `Conformance\HostDriverInterface` gains `linkable()`, and its `handle()` takes the editor signed in for the request
+  as an optional third argument, so a host's driver must add both.
 - The probe module's admin.xml adds a section to the existing `site` area, so a host must accept an area marked
   `existing="true"` to keep passing `AbstractModuleConformanceTestCase`.
 

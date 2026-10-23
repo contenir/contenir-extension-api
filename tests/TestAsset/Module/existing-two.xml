@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<admin>
+    <site existing="true">
+        <category>
+            <pages>
+                <section>
+                    <boom>
+                        <handler>boom</handler>
+                    </boom>
+                    <later>
+                        <title>Later</title>
+                    </later>
+                </section>
+            </pages>
+        </category>
+    </site>
+    <library existing="true">
+        <category>
+            <files>
+                <section>
+                    <shelf>
+                        <title>Shelf</title>
+                    </shelf>
+                </section>
+            </files>
+        </category>
+    </library>
+</admin>

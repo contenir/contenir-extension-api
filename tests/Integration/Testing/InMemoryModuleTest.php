@@ -38,16 +38,40 @@ final class InMemoryModuleTest extends TestCase
     public static function guardProvider(): array
     {
         return [
-            'the area guards a handler no section names'             => ['area.xml', 'fixtures', 200],
-            'a section that names no handler guards nothing'         => ['area.xml', 'fixtures.reports.plain', 403],
-            'an empty category guards nothing'                       => ['area.xml', 'fixtures.empty', 403],
-            'an admin.xml with no area leaves its own'               => ['empty.xml', 'extension.fixture.home', 200],
-            'an admin.xml that will not parse leaves its own'        => ['broken.xml', 'extension.fixture.home', 200],
-            'a missing admin.xml leaves its own'                     => ['missing.xml', 'extension.fixture.home', 200],
-            'adding to an existing area leaves the rest their own'   => ['existing.xml', 'extension.fixture.home', 200],
-            'an existing area guards nothing it does not name'       => ['existing.xml', 'site', 403],
-            'the first area of its own guards what no section names' => ['existing-first.xml', 'fixtures', 200],
-            'a later area of its own guards nothing'                 => ['existing-first.xml', 'later', 403],
+            'the area guards a handler no section names'                => ['area.xml', 'fixtures', 200],
+            'a section that names no handler guards nothing'            => ['area.xml', 'fixtures.reports.plain', 403],
+            'an empty category guards nothing'                          => ['area.xml', 'fixtures.empty', 403],
+            'an admin.xml with no area leaves its own'                  => ['empty.xml', 'extension.fixture.home', 200],
+            'an admin.xml that will not parse leaves its own'           => [
+                'broken.xml',
+                'extension.fixture.home',
+                200,
+            ],
+            'a missing admin.xml leaves its own'                        => [
+                'missing.xml',
+                'extension.fixture.home',
+                200,
+            ],
+            'adding to an existing area guards the rest by its section' => ['existing.xml', 'site.pages.boom', 200],
+            'adding to an existing area takes the rest from their own'  => [
+                'existing.xml',
+                'extension.fixture.home',
+                403,
+            ],
+            'an existing area with no sections leaves them their own'   => [
+                'existing-empty.xml',
+                'extension.fixture.home',
+                200,
+            ],
+            'the first section added guards the rest'                   => ['existing-two.xml', 'site.pages.boom', 200],
+            'a later section added guards nothing else'                 => [
+                'existing-two.xml',
+                'site.pages.later',
+                403,
+            ],
+            'an existing area guards nothing it does not name'          => ['existing.xml', 'site', 403],
+            'the first area of its own guards what no section names'    => ['existing-first.xml', 'fixtures', 200],
+            'a later area of its own guards nothing'                    => ['existing-first.xml', 'later', 403],
         ];
     }
 

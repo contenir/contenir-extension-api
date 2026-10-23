@@ -24,7 +24,8 @@ implement all three.
 - `AbstractRecordsConformanceTestCase` checks a host's records, with a `records` handler on the probe add-on.
 - Sections in existing areas: an area in a module's admin.xml marked `existing="true"` names an area that already
   exists, such as the CMS's `site`, and the categories under it are added to that area. A handler named in one of
-  its sections is guarded by that section. A module may add to existing areas without an area of its own.
+  its sections is guarded by that section. A module may add to existing areas without an area of its own; its
+  handlers that no section names are then guarded by the first section it adds.
   `AbstractModuleConformanceTestCase` checks the probe module's section in `site`.
 - The editor: `Editor\CurrentEditorInterface` lends add-ons the editor signed in for the admin request being answered,
   from `services()`, named by the interface; an add-on asks `has()` first. `current()` is an `Editor\Editor`, with the

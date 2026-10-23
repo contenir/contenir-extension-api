@@ -190,8 +190,8 @@ to:
 ```
 
 A handler named in such a section is guarded by it (`site.navigation.menus`), as one in the module's own area is. A
-module that adds to existing areas only has no area of its own, so any handler no section names keeps its own
-permission.
+module that adds to existing areas only has no area of its own, so a handler no section names is guarded by the first
+section it adds, and a role allowed that section reaches all of the module's screens.
 
 A handler answers with a described screen where it can, and with one of the module's templates where it can't
 (decision M1). A described screen may carry a row of `Handler\Tab`s under its header, leading to the other screens

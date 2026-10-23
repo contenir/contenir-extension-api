@@ -18,9 +18,10 @@ use const LIBXML_NOWARNING;
 /**
  * Which permission guards a module's handler: the section whose <handler>
  * names it in the module's admin.xml, whether in the module's own area or in
- * an existing one it adds to, or else the module's own area. Null for an
+ * an existing one it adds to; else the module's own area; else, for a module
+ * that only adds to existing areas, the first section it adds. Null for an
  * add-on that is not a module, or whose admin.xml can't be read or holds no
- * area of its own; its handlers keep their own.
+ * area or section; its handlers keep their own.
  *
  * @internal
  */
@@ -42,19 +43,38 @@ final class ModuleAreas
         $document = new DOMDocument();
         $document->load($file, LIBXML_NOERROR | LIBXML_NOWARNING);
 
-        $own = null;
+        $own   = null;
+        $added = null;
         foreach (Elements::children($document->documentElement) as $area) {
             $section = self::section($area, $handler);
             if (null !== $section) {
                 return $section;
             }
 
-            if (null === $own && 'true' !== $area->getAttribute(self::EXISTING)) {
-                $own = $area->tagName;
+            if ('true' === $area->getAttribute(self::EXISTING)) {
+                $added ??= self::firstSection($area);
+                continue;
+            }
+
+            $own ??= $area->tagName;
+        }
+
+        return $own ?? $added;
+    }
+
+    /**
+     * The resource of the first section in $area.
+     */
+    private static function firstSection(DOMElement $area): ?string
+    {
+        foreach (Elements::children(Elements::child($area, 'category')) as $category) {
+            $section = Elements::children(Elements::child($category, 'section'))[0] ?? null;
+            if (null !== $section) {
+                return sprintf('%s.%s.%s', $area->tagName, $category->tagName, $section->tagName);
             }
         }
 
-        return $own;
+        return null;
     }
 
     /**

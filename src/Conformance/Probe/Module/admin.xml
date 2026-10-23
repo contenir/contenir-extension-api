@@ -16,4 +16,17 @@
             </notes>
         </category>
     </probes>
+    <site existing="true">
+        <category>
+            <probe-links>
+                <title>Probe links</title>
+                <section>
+                    <links>
+                        <title>Links</title>
+                        <handler>links</handler>
+                    </links>
+                </section>
+            </probe-links>
+        </category>
+    </site>
 </admin>

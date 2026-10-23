@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Two additions for the managed navigation add-on: add-ons can find, describe and create the site's records, and a
+module can add a section to an area that already exists, such as Site Pages. Hosts must implement both.
+
+### Added
+
+- Records: `Record\RecordsInterface` lends add-ons the sections a site marks as linkable, from `services()`, named by
+  the interface; an add-on asks `has()` first. `sections()` lists them as `Record\LinkableSection`s, with whether new
+  records can be made there and their `Record\Workflow`s; `search()` finds records by title or path as
+  `Record\RecordSummary`s, with their `Record\RecordStatus`, path and edit URL; `describe()` gives one; and
+  `isPathFree()` says whether a path is in use. `create()` makes a draft from a `Record\NewRecord` through the normal
+  save path, so validation, events, holds and the editor's permission to add apply, inside the add-on's transaction
+  on the site's database when it has one open, and answers with the save's `Event\ActionResult`.
+- `Testing\InMemoryHost` lends its records as `RecordsInterface`, and `linkable()` marks a section as linkable. Its
+  records act for an editor holding the grants of the request being answered, or allowed everything outside one.
+- `AbstractRecordsConformanceTestCase` checks a host's records, with a `records` handler on the probe add-on.
+- Sections in existing areas: an area in a module's admin.xml marked `existing="true"` names an area that already
+  exists, such as the CMS's `site`, and the categories under it are added to that area. A handler named in one of
+  its sections is guarded by that section. A module may add to existing areas without an area of its own.
+  `AbstractModuleConformanceTestCase` checks the probe module's section in `site`.
+
+### Changed
+
+- `Conformance\HostDriverInterface` gains `linkable()`, so a host's driver must add it.
+- The probe module's admin.xml adds a section to the existing `site` area, so a host must accept an area marked
+  `existing="true"` to keep passing `AbstractModuleConformanceTestCase`.
+
 ## [0.7.1] - 2026-10-22
 
 Hosts can tell an operation that destroys something from one that only asks first.

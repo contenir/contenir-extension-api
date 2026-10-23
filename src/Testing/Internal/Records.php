@@ -22,6 +22,16 @@ final class Records
     private array $last = [];
 
     /**
+     * Every record, by section and id.
+     *
+     * @return array<string, array<string|int, array<string, mixed>>>
+     */
+    public function all(): array
+    {
+        return $this->rows;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function get(string $section, string|int $id): ?array

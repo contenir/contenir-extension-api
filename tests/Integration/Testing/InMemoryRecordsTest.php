@@ -121,6 +121,20 @@ final class InMemoryRecordsTest extends TestCase
     }
 
     #[Test]
+    public function aNewRecordTakesTheIdAfterThoseSeededAndLeavesThemAlone(): void
+    {
+        $this->host->seed('page', 4, ['title' => 'About us', 'path' => '/about']);
+        $this->host->seed('page', 'legacy', ['title' => 'Old', 'path' => '/old']);
+
+        $created = $this->records()->create(new NewRecord('page', 'Contact', '/contact'));
+
+        static::assertSame(
+            [5, 'About us'],
+            [$created->id, $this->host->stored('page', 4)['title'] ?? null],
+        );
+    }
+
+    #[Test]
     public function aNewRecordTakesTheSectionsFirstWorkflowWhenItNamesNone(): void
     {
         $result = $this->records()->create(new NewRecord('page', 'Contact', '/contact'));
@@ -199,6 +213,15 @@ final class InMemoryRecordsTest extends TestCase
         $result = $this->records()->create(new NewRecord('page', 'Contact', '/contact'));
 
         static::assertTrue($result->succeeded());
+    }
+
+    #[Test]
+    public function seedingALowerIdLeavesTheNextIdWhereItWas(): void
+    {
+        $this->host->seed('page', 4, ['title' => 'About us', 'path' => '/about']);
+        $this->host->seed('page', 2, ['title' => 'Team', 'path' => '/team']);
+
+        static::assertSame(5, $this->records()->create(new NewRecord('page', 'Contact', '/contact'))->id);
     }
 
     #[Override]

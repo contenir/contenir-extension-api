@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Testing\Internal;
 
+use function is_int;
+use function max;
+
 /**
  * Records by section and id, with snapshots standing in for a transaction.
  *
@@ -45,6 +48,9 @@ final class Records
     public function put(string $section, string|int $id, array $values): void
     {
         $this->rows[$section][$id] = $values;
+        if (is_int($id)) {
+            $this->last[$section] = max($id, $this->last[$section] ?? $id);
+        }
     }
 
     /**

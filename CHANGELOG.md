@@ -38,6 +38,11 @@ hold a link field. Hosts must implement all four.
   reads what the field posts, `encode()` and `decode()` write and read its default, and an incomplete choice throws
   `Exception\LinkRejectedException` with a message for the editor.
 
+### Fixed
+
+- `Testing\InMemoryHost` gave the first record it created after `seed()` the id of a seeded one, overwriting it; a
+  new record now takes the id after the highest seeded in its section.
+
 ### Changed
 
 - `Conformance\HostDriverInterface` gains `linkable()`, and its `handle()` takes the editor signed in for the request

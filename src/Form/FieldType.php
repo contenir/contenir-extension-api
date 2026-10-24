@@ -9,16 +9,27 @@ namespace Contenir\Extension\Api\Form;
  * of these, or with a field type it registers itself.
  *
  * @api
+ *
+ * @mago-expect lint:too-many-enum-cases One case per control every host draws.
  */
 enum FieldType: string
 {
-    case Checkbox      = 'checkbox';
-    case Date          = 'date';
-    case Datetime      = 'datetime';
-    case Email         = 'email';
-    case Filedocument  = 'filedocument';
-    case Fileimage     = 'fileimage';
-    case Hidden        = 'hidden';
+    case Checkbox     = 'checkbox';
+    case Date         = 'date';
+    case Datetime     = 'datetime';
+    case Email        = 'email';
+    case Filedocument = 'filedocument';
+    case Fileimage    = 'fileimage';
+    case Hidden       = 'hidden';
+
+    /**
+     * A link to one of the site's linkable records or to an address, chosen
+     * in the host's picker, which can also start a new record. Its default is
+     * a Link's encode(); it posts as Link::fromPosted() reads. Hints: "create"
+     * (true offers Create new) and "prefix" (the path a new record's suggested
+     * path starts with, such as /about).
+     */
+    case Link          = 'link';
     case Multicheckbox = 'multicheckbox';
     case Multilink     = 'multilink';
     case Multiselect   = 'multiselect';

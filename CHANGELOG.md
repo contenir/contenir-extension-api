@@ -6,9 +6,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Three additions for the managed navigation add-on: add-ons can find, describe and create the site's records, a module
-can add a section to an area that already exists, such as Site Pages, and add-ons can tell who is signed in. Hosts must
-implement all three.
+Four additions for the managed navigation add-on: add-ons can find, describe and create the site's records, a module
+can add a section to an area that already exists, such as Site Pages, add-ons can tell who is signed in, and forms can
+hold a link field. Hosts must implement all four.
 
 ### Added
 
@@ -32,6 +32,11 @@ implement all three.
   editor's user id and name, or null when no one is signed in, as in a public webhook, a scheduled task or a
   background listener. `Testing\InMemoryHost` lends it, naming the editor passed to `handle()`, and
   `AbstractEditorConformanceTestCase` checks a host's, with an `editor` handler on the probe add-on.
+- A link field: `Form\FieldType::Link` is a field every host draws as a picker over the site's linkable records and
+  addresses, offering Create new when its `create` hint is true, with a suggested path under its `prefix` hint.
+  `Form\Link` is its value, a record, an address or a `Record\NewRecord` to create (`Form\LinkKind`): `fromPosted()`
+  reads what the field posts, `encode()` and `decode()` write and read its default, and an incomplete choice throws
+  `Exception\LinkRejectedException` with a message for the editor.
 
 ### Changed
 

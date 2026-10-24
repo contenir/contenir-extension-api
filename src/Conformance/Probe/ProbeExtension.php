@@ -90,6 +90,7 @@ final readonly class ProbeExtension implements ExtensionInterface
         $registry->handler('remember', Remember::class);
         $registry->handler('broken', BrokenHandler::class);
         $registry->handler('records', RecordsHandler::class);
+        $registry->handler('editor', EditorHandler::class);
         $registry->webhook('hook', Hook::class);
         $registry->webhook('file', FileHook::class);
 

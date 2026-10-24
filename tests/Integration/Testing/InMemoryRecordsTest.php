@@ -6,6 +6,7 @@ namespace Contenir\Extension\Api\Tests\Integration\Testing;
 
 use Contenir\Extension\Api\Conformance\Probe\Journal;
 use Contenir\Extension\Api\Conformance\Probe\ProbeExtension;
+use Contenir\Extension\Api\Editor\CurrentEditorInterface;
 use Contenir\Extension\Api\Record\LinkableSection;
 use Contenir\Extension\Api\Record\NewRecord;
 use Contenir\Extension\Api\Record\RecordsInterface;
@@ -181,6 +182,15 @@ final class InMemoryRecordsTest extends TestCase
         $this->host->seed('page', 1, ['title' => 'About us', 'path' => '/about']);
 
         static::assertSame([], $this->records()->search('about', limit: 0));
+    }
+
+    #[Test]
+    public function outsideARequestNoEditorIsSignedIn(): void
+    {
+        $this->records();
+        $editors = $this->host->context(ProbeExtension::HANDLE)->services()->get(CurrentEditorInterface::class);
+
+        static::assertNull($editors instanceof CurrentEditorInterface ? $editors->current() : 'not lent');
     }
 
     #[Test]

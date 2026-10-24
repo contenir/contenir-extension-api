@@ -190,8 +190,8 @@ to:
 ```
 
 A handler named in such a section is guarded by it (`site.navigation.menus`), as one in the module's own area is. A
-module that adds to existing areas only has no area of its own, so any handler no section names keeps its own
-permission.
+module that adds to existing areas only has no area of its own, so a handler no section names is guarded by the first
+section it adds, and a role allowed that section reaches all of the module's screens.
 
 A handler answers with a described screen where it can, and with one of the module's templates where it can't
 (decision M1). A described screen may carry a row of `Handler\Tab`s under its header, leading to the other screens
@@ -234,6 +234,10 @@ add-on asks `has()` for first: the site's mail (`Mail\MailerInterface`) and its 
 A host may also lend add-ons the site's own settings, read-only, from `services()` as
 `Settings\SiteSettingsInterface`, which an add-on asks `has()` for first: `get('contact.telephone')` reads a setting
 by its dotted key as text. `Testing\MemorySiteSettings` holds them in memory for tests.
+
+A host may also lend add-ons who is signed in from `services()` as `Editor\CurrentEditorInterface`, which an add-on
+asks `has()` for first: `current()` is the `Editor\Editor`, with their user id and name, for the admin request being
+answered, and null when no one is signed in, as in a public webhook, a scheduled task or a background listener.
 
 A host may also lend add-ons the site's records from `services()` as `Record\RecordsInterface`, which an add-on asks
 `has()` for first, for add-ons that link to them, such as a menu's items. Only the sections the site marks as
@@ -300,6 +304,7 @@ A host proves it implements the API by running the conformance suite: abstract P
 | `AbstractModuleConformanceTestCase` | a module's handlers answer with its templates, values escaped, behind its area's or section's resource and the privilege each declares, including a section it adds to an existing area |
 | `AbstractSettingsConformanceTestCase` | an add-on reads back what it saved to its settings, unsaved fields have their declared default, and writes fire the settings events; operations on its section run with its context, behind their privilege on `settings.<category>.<section>` |
 | `AbstractRecordsConformanceTestCase` | the records lent to add-ons: only linkable sections are listed, searched, described and created in; a new record is a draft saved through the save path, which listeners can stop or fail and fields can hold, and needs the editor's permission to add |
+| `AbstractEditorConformanceTestCase` | the editor lent to add-ons: the one signed in for the request being answered, and no one once it is over or when no one signed in |
 | `AbstractServiceConformanceTestCase` | services add-ons provide: made once with the add-on's context, only while it is enabled, from the first to load; a failing factory is reported and provides nothing |
 | `AbstractDiagnosticConformanceTestCase` | checks in the update check; fixes need `extension.<handle>.fix` and re-run the check |
 
@@ -334,7 +339,8 @@ $host->save('member', 1, ['email' => 'ann@example.com']);
 $host->runBackground();
 ```
 
-`linkable()` marks a section as linkable for the records it lends add-ons. A record's title, path and status are
+`handle()` takes the editor signed in for a request, if any, whom it lends add-ons as `Editor\CurrentEditorInterface`
+while the request is answered. `linkable()` marks a section as linkable for the records it lends add-ons. A record's title, path and status are
 its `title`, `path` and `status` values, and each linkable section is its own ACL resource. While it answers a request
 the records act for an editor holding the request's grants; outside one, as when a test calls an add-on's classes with
 `context()`, for an editor allowed everything.

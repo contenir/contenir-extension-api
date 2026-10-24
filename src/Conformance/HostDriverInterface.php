@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Conformance;
 
 use Contenir\Extension\Api\Diagnostic\CheckResult;
+use Contenir\Extension\Api\Editor\Editor;
 use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
@@ -82,11 +83,17 @@ interface HostDriverInterface
      * Answers a request to an admin handler or a public webhook, for someone
      * holding the ACL resources in $grants. A grant naming a resource alone
      * holds every privilege on it; "<resource>:<privilege>" holds only that
-     * privilege (a Handler\Privilege value).
+     * privilege (a Handler\Privilege value). $editor is who is signed in for
+     * the request, as Editor\CurrentEditorInterface names them to add-ons;
+     * null for no one.
      *
      * @param list<string> $grants
      */
-    public function handle(ServerRequestInterface $request, array $grants = []): ResponseInterface;
+    public function handle(
+        ServerRequestInterface $request,
+        array $grants = [],
+        ?Editor $editor = null,
+    ): ResponseInterface;
 
     /**
      * Marks a section as linkable, as the site's admin.xml does, after those

@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.7.2] - 2026-10-25
 
 Four additions for the managed navigation add-on: add-ons can find, describe and create the site's records, a module
 can add a section to an area that already exists, such as Site Pages, add-ons can tell who is signed in, and forms can

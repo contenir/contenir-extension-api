@@ -26,9 +26,10 @@ enum FieldType: string
      * A short name for addresses and templates, such as a slug or a handle,
      * filled from other fields as the editor types them until the editor
      * types in it. Hints: "data-identifier" (the names of the fields it
-     * follows, separated by spaces) and "pattern" (the characters it allows,
-     * as an HTML pattern, so the host fills it with nothing the add-on would
-     * refuse). The add-on still checks what is posted.
+     * follows, separated by spaces), "pattern" (the characters it allows, as
+     * an HTML pattern) and "maxlength". The add-on still checks what is
+     * posted, and says through a "warning" hint when another record uses the
+     * same value, rather than refusing it.
      */
     case Identifier = 'identifier';
 

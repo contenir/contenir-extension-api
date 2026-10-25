@@ -13,8 +13,10 @@ Two additions for add-on forms, both optional for an add-on and safe for a host 
 - `Form\Group` takes `aside`: a group drawn beside the others, as a record's Publishing card is, by a host with a
   sidebar, and after them by one without.
 - `Form\FieldType::Identifier`: a short name such as a slug or a handle, filled from the fields its
-  `data-identifier` hint names until the editor types in it, and limited by its `pattern` hint. The add-on still
-  checks what is posted.
+  `data-identifier` hint names until the editor types in it, and limited by its `pattern` and `maxlength` hints. The
+  add-on still checks what is posted.
+- A field's `warning` hint: a note the host shows beside the field's label, such as another record using the same
+  identifier. It never refuses the save.
 
 ## [0.7.2] - 2026-10-25
 

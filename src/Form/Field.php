@@ -27,7 +27,8 @@ final readonly class Field
     /**
      * @param array<string, string>                $options    Choices for select, radio and multi-choice types, value => label
      * @param list<Field>                          $fields     The sub-fields of a repeating type such as multilink
-     * @param array<string, scalar>                $attributes Hints a host may honour (rows, placeholder, …); unknown ones are ignored
+     * @param array<string, scalar>                $attributes Hints a host may honour (rows, placeholder, warning: a
+     *                                                     note shown beside the label, …); unknown ones are ignored
      * @param ?string                              $setting    The dotted config key a settings section stores the value under; null keeps the field's own name
      * @param bool                                 $transient  Not stored by the host: a row hydrator supplies the value and a save listener keeps it
      * @param bool                                 $local      Stored in the site's .local.php, never in a file that is committed

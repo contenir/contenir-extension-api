@@ -23,6 +23,16 @@ enum FieldType: string
     case Hidden       = 'hidden';
 
     /**
+     * A short name for addresses and templates, such as a slug or a handle,
+     * filled from other fields as the editor types them until the editor
+     * types in it. Hints: "data-identifier" (the names of the fields it
+     * follows, separated by spaces) and "pattern" (the characters it allows,
+     * as an HTML pattern, so the host fills it with nothing the add-on would
+     * refuse). The add-on still checks what is posted.
+     */
+    case Identifier = 'identifier';
+
+    /**
      * A link to one of the site's linkable records or to an address, chosen
      * in the host's picker, which can also start a new record. Its default is
      * a Link's encode(); it posts as Link::fromPosted() reads. Hints: "create"

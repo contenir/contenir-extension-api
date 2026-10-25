@@ -36,6 +36,15 @@ final class GroupTest extends TestCase
     }
 
     #[Test]
+    public function sitsAmongTheOtherGroupsUnlessDeclaredAside(): void
+    {
+        static::assertSame(
+            [false, true],
+            [(new FormGroup('details', 'Details', []))->aside, (new FormGroup('info', 'Info', [], aside: true))->aside],
+        );
+    }
+
+    #[Test]
     public function writesSingleFieldRowsAsOneColumn(): void
     {
         $group = new FormGroup('connection', 'Connection', ['api_key', ['list_id', 'tag']]);

@@ -24,7 +24,9 @@ final readonly class Group
     public array $rows;
 
     /**
-     * @param list<string|list<string>> $rows A field name for a one-column row, or a list of names for columns
+     * @param list<string|list<string>> $rows  A field name for a one-column row, or a list of names for columns
+     * @param bool                      $aside Drawn beside the other groups, as a record's Publishing card is, by a
+     *                                         host with a sidebar; after them by one without
      *
      * @throws InvalidDeclarationException When the id is malformed.
      */
@@ -32,6 +34,7 @@ final readonly class Group
         public string $id,
         public string $legend,
         array $rows,
+        public bool $aside = false,
     ) {
         Names::field($id);
 

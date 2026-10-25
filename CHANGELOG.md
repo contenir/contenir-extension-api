@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Two additions for add-on forms, both optional for an add-on and safe for a host to draw as before.
+
+### Added
+
+- `Form\Group` takes `aside`: a group drawn beside the others, as a record's Publishing card is, by a host with a
+  sidebar, and after them by one without.
+- `Form\FieldType::Identifier`: a short name such as a slug or a handle, filled from the fields its
+  `data-identifier` hint names until the editor types in it, and limited by its `pattern` hint. The add-on still
+  checks what is posted.
+
 ## [0.7.2] - 2026-10-25
 
 Four additions for the managed navigation add-on: add-ons can find, describe and create the site's records, a module

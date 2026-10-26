@@ -15,6 +15,9 @@ Two additions for add-on forms, both optional for an add-on and safe for a host 
 - `Form\FieldType::Identifier`: a short name such as a slug or a handle, filled from the fields its
   `data-identifier` hint names until the editor types in it, and limited by its `pattern` and `maxlength` hints. The
   add-on still checks what is posted.
+- `Form\Link` carries an optional `fragment` for a record or a record to create: the spot on its page, posted as the
+  link field's "fragment" and encoded as `record:<section>:<id>#<fragment>`. `Link::record()` and `Link::newRecord()`
+  take it as a second argument. An address keeps any fragment in the address itself.
 - A field's `warning` hint: a note the host shows beside the field's label, such as another record using the same
   identifier. It never refuses the save.
 

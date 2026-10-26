@@ -11,6 +11,7 @@ use Contenir\Extension\Api\Url\RecordReference;
 
 use function is_array;
 use function is_string;
+use function ltrim;
 use function strpos;
 use function substr;
 use function trim;
@@ -22,19 +23,30 @@ use function trim;
  *
  * A link field posts an array under its name: "kind" (record, address or
  * new), then "record" as "<section>:<id>", "address", or "section", "title",
- * "path" and "workflow". Its default is a record or address as encode()
- * writes it.
+ * "path" and "workflow". A record, or a record to create, may carry a
+ * "fragment": the spot on its page, such as "staff" for "#staff". An address
+ * keeps any fragment in the address itself. Its default is a record or
+ * address as encode() writes it.
  *
  * @api
  */
 final readonly class Link
 {
+    /**
+     * The spot on a record's page, without its leading "#", or null when there is none.
+     */
+    public ?string $fragment;
+
     private function __construct(
         public LinkKind $kind,
         public ?RecordReference $record = null,
         public ?string $address = null,
         public ?NewRecord $newRecord = null,
-    ) {}
+        ?string $fragment = null,
+    ) {
+        $fragment       = ltrim(trim((string) $fragment), characters: '#');
+        $this->fragment = '' === $fragment ? null : $fragment;
+    }
 
     /**
      * @throws LinkRejectedException When the address is empty.
@@ -62,10 +74,14 @@ final readonly class Link
 
         $kind = substr($encoded, offset: 0, length: $colon);
         $rest = substr($encoded, $colon + 1);
+        $hash = strpos($rest, needle: '#');
+        [$choice, $fragment] = false === $hash
+            ? [$rest, '']
+            : [substr($rest, offset: 0, length: $hash), substr($rest, $hash)];
 
         try {
             return match ($kind) {
-                LinkKind::Record->value => self::recordFrom($rest),
+                LinkKind::Record->value => self::recordFrom($choice, $fragment),
                 LinkKind::Address->value => self::address($rest),
                 default => null,
             };
@@ -87,21 +103,27 @@ final readonly class Link
         }
 
         return match (self::text($posted, 'kind')) {
-            LinkKind::Record->value => self::recordFrom(self::text($posted, 'record')),
+            LinkKind::Record->value => self::recordFrom(self::text($posted, 'record'), self::text($posted, 'fragment')),
             LinkKind::Address->value => self::address(self::text($posted, 'address')),
             LinkKind::NewRecord->value => self::newRecordFrom($posted),
             default => null,
         };
     }
 
-    public static function newRecord(NewRecord $record): self
+    /**
+     * @param ?string $fragment The spot on the new record's page, with or without its leading "#"
+     */
+    public static function newRecord(NewRecord $record, ?string $fragment = null): self
     {
-        return new self(LinkKind::NewRecord, newRecord: $record);
+        return new self(LinkKind::NewRecord, newRecord: $record, fragment: $fragment);
     }
 
-    public static function record(RecordReference $record): self
+    /**
+     * @param ?string $fragment The spot on the record's page, with or without its leading "#"
+     */
+    public static function record(RecordReference $record, ?string $fragment = null): self
     {
-        return new self(LinkKind::Record, record: $record);
+        return new self(LinkKind::Record, record: $record, fragment: $fragment);
     }
 
     /**
@@ -114,12 +136,15 @@ final readonly class Link
         $workflow = self::text($posted, 'workflow');
 
         try {
-            return self::newRecord(new NewRecord(
-                self::text($posted, 'section'),
-                self::text($posted, 'title'),
-                self::text($posted, 'path'),
-                '' === $workflow ? null : $workflow,
-            ));
+            return self::newRecord(
+                new NewRecord(
+                    self::text($posted, 'section'),
+                    self::text($posted, 'title'),
+                    self::text($posted, 'path'),
+                    '' === $workflow ? null : $workflow,
+                ),
+                self::text($posted, 'fragment'),
+            );
         } catch (InvalidDeclarationException) {
             throw LinkRejectedException::because('Give the new page a title and an address');
         }
@@ -128,7 +153,7 @@ final readonly class Link
     /**
      * @throws LinkRejectedException When $choice is not "<section>:<id>".
      */
-    private static function recordFrom(string $choice): self
+    private static function recordFrom(string $choice, string $fragment = ''): self
     {
         $colon   = strpos($choice, needle: ':');
         $section = false === $colon ? '' : substr($choice, offset: 0, length: $colon);
@@ -137,7 +162,7 @@ final readonly class Link
             throw LinkRejectedException::because('Choose the page or record to link to');
         }
 
-        return self::record(new RecordReference($section, $id));
+        return self::record(new RecordReference($section, $id), $fragment);
     }
 
     /**
@@ -153,13 +178,15 @@ final readonly class Link
     }
 
     /**
-     * The value as a link field's default: "record:<section>:<id>" or
-     * "address:<address>". A record still to create has none.
+     * The value as a link field's default: "record:<section>:<id>", followed
+     * by "#<fragment>" when it has one, or "address:<address>". A record still
+     * to create has none.
      */
     public function encode(): ?string
     {
         return match ($this->kind) {
-            LinkKind::Record    => "record:{$this->record?->section}:{$this->record?->id}",
+            LinkKind::Record => "record:{$this->record?->section}:{$this->record?->id}"
+                . (null === $this->fragment ? '' : "#{$this->fragment}"),
             LinkKind::Address   => "address:{$this->address}",
             LinkKind::NewRecord => null,
         };

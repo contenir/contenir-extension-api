@@ -59,6 +59,18 @@ final class LinkTest extends TestCase
     }
 
     /**
+     * @return array<string, array{string|null}>
+     */
+    public static function noFragmentProvider(): array
+    {
+        return [
+            'none given'        => [null],
+            'nothing but space' => ['  '],
+            'only the hash'     => ['#'],
+        ];
+    }
+
+    /**
      * @return array<string, array{mixed}>
      */
     public static function nothingProvider(): array
@@ -106,6 +118,14 @@ final class LinkTest extends TestCase
     }
 
     #[Test]
+    public function decodesARecordsFragmentItEncoded(): void
+    {
+        $link = Link::decode('record:page:12#staff');
+
+        static::assertEquals([new RecordReference('page', '12'), 'staff'], [$link?->record, $link?->fragment]);
+    }
+
+    #[Test]
     public function encodesAnAddressAsItsDefault(): void
     {
         static::assertSame('address:https://example.com/a', Link::address('https://example.com/a')->encode());
@@ -118,6 +138,12 @@ final class LinkTest extends TestCase
     }
 
     #[Test]
+    public function encodesARecordWithItsFragment(): void
+    {
+        static::assertSame('record:page:12#staff', Link::record(new RecordReference('page', 12), '#staff')->encode());
+    }
+
+    #[Test]
     public function hasNoDefaultForARecordStillToCreate(): void
     {
         static::assertNull(Link::newRecord(new NewRecord('page', 'Team', '/team'))->encode());
@@ -127,6 +153,21 @@ final class LinkTest extends TestCase
     public function keepsAColonInARecordId(): void
     {
         static::assertSame('a:b', Link::fromPosted(['kind' => 'record', 'record' => 'page:a:b'])?->record?->id);
+    }
+
+    #[Test]
+    public function keepsEverythingAfterTheFirstHashAsTheFragment(): void
+    {
+        static::assertSame('top#more', Link::decode('record:page:12#top#more')?->fragment);
+    }
+
+    #[Test]
+    #[DataProvider('noFragmentProvider')]
+    public function keepsNoFragmentWhenNoneIsGiven(?string $fragment): void
+    {
+        $link = Link::record(new RecordReference('page', 12), $fragment);
+
+        static::assertSame([null, 'record:page:12'], [$link->fragment, $link->encode()]);
     }
 
     #[Test]
@@ -188,5 +229,27 @@ final class LinkTest extends TestCase
         $this->expectExceptionMessage($message);
 
         Link::fromPosted($posted);
+    }
+
+    #[Test]
+    public function takesANewRecordsFragmentFromWhatWasPosted(): void
+    {
+        $link = Link::fromPosted([
+            'kind'     => 'new',
+            'section'  => 'page',
+            'title'    => 'Team',
+            'path'     => '/team',
+            'fragment' => 'staff',
+        ]);
+
+        static::assertSame('staff', $link?->fragment);
+    }
+
+    #[Test]
+    public function takesARecordsFragmentFromWhatWasPosted(): void
+    {
+        $link = Link::fromPosted(['kind' => 'record', 'record' => 'page:12', 'fragment' => ' #staff ']);
+
+        static::assertSame('staff', $link?->fragment);
     }
 }

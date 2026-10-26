@@ -15,6 +15,14 @@ use PHPUnit\Framework\TestCase;
 final class FieldTest extends TestCase
 {
     #[Test]
+    public function declaresAnIdentifierFollowingItsSourceFields(): void
+    {
+        $field = new Field('handle', 'Handle', FieldType::Identifier, attributes: ['data-identifier' => 'title']);
+
+        static::assertSame(['identifier', ['data-identifier' => 'title']], [$field->type, $field->attributes]);
+    }
+
+    #[Test]
     public function declaresAnOptionalPasswordByDefault(): void
     {
         $field = Field::password('api_key', 'API key');

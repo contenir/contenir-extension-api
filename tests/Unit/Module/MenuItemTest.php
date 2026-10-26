@@ -15,6 +15,21 @@ use PHPUnit\Framework\TestCase;
 final class MenuItemTest extends TestCase
 {
     #[Test]
+    public function acceptsACountOfNone(): void
+    {
+        static::assertSame(0, (new MenuItem('Footer', 'menus', count: 0))->count);
+    }
+
+    #[Test]
+    public function carriesNoCountUnlessGivenOne(): void
+    {
+        static::assertSame([null, 12], [
+            (new MenuItem('Contact', 'entries'))->count,
+            (new MenuItem('Main navigation', 'menus', ['menu' => 1], count: 12))->count,
+        ]);
+    }
+
+    #[Test]
     public function groupsItemsUnderAHeading(): void
     {
         $item  = new MenuItem('Contact', 'entries', current: true);
@@ -43,6 +58,15 @@ final class MenuItemTest extends TestCase
         $this->expectExceptionMessage('Handler name "Entries" must be');
 
         new MenuItem('Contact', 'Entries');
+    }
+
+    #[Test]
+    public function rejectsANegativeCount(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage("A menu item's count must not be negative, -1 given");
+
+        new MenuItem('Footer', 'menus', count: -1);
     }
 
     #[Test]

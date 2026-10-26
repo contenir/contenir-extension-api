@@ -6,7 +6,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Two additions for add-on forms, both optional for an add-on and safe for a host to draw as before.
+Additions for add-on forms and section menus, all optional for an add-on and safe for a host to draw as before.
 
 ### Added
 
@@ -18,6 +18,11 @@ Two additions for add-on forms, both optional for an add-on and safe for a host 
 - `Form\Link` carries an optional `fragment` for a record or a record to create: the spot on its page, posted as the
   link field's "fragment" and encoded as `record:<section>:<id>#<fragment>`. `Link::record()` and `Link::newRecord()`
   take it as a second argument. An address keeps any fragment in the address itself.
+- `Module\MenuItem` takes `count`: a number the host shows beside the item's label, such as how many items a menu
+  holds. It must not be negative.
+- A module that only adds sections to an existing area can declare `menu()`: its groups are drawn in place of those
+  sections, so an add-on can list its own records there, such as each of the site's menus under Navigation. A host
+  draws the sections its admin.xml adds while the menu lists nothing the person may view.
 - A field's `warning` hint: a note the host shows beside the field's label, such as another record using the same
   identifier. It never refuses the save.
 

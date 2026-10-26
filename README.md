@@ -211,7 +211,10 @@ other templates. It uses the dashboard theme's markup and classes, never the hos
 the same in any host. `Testing\InMemoryTemplates` draws a template on its own in a module's tests.
 
 `menu()` names a `Module\MenuInterface` listing what the area's section menu shows beyond its admin.xml, such as the
-forms in the form builder's tables. Each `Module\MenuItem` leads to one of the module's handlers.
+forms in the form builder's tables. Each `Module\MenuItem` leads to one of the module's handlers, and may carry a
+`count` the host shows beside its label. A module that only adds sections to an existing area has its menu drawn in
+place of those sections, such as each of the site's menus in place of a single Menus section, while it lists anything
+the person may view.
 
 ## Host context
 

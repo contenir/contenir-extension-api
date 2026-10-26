@@ -14,6 +14,18 @@ use PHPUnit\Framework\TestCase;
 final class GroupTest extends TestCase
 {
     #[Test]
+    public function aGroupIsOpenUnlessFolded(): void
+    {
+        static::assertSame(
+            [false, true],
+            [
+                (new FormGroup('details', 'Details', []))->folded,
+                (new FormGroup('advanced', 'Advanced', [], folded: true))->folded,
+            ],
+        );
+    }
+
+    #[Test]
     public function listsItsFieldsInOrder(): void
     {
         $group = new FormGroup('connection', 'Connection', ['api_key', ['list_id', 'tag'], 'region']);

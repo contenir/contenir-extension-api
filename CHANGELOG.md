@@ -12,10 +12,12 @@ Additions for add-on forms and section menus, all optional for an add-on and saf
 
 - `Form\Group` takes `aside`: a group drawn beside the others, as a record's Publishing card is, by a host with a
   sidebar, and after them by one without.
+- `Form\Group` takes `folded`: a group folded away under its legend until opened, as advanced settings are, by a
+  host that can fold a group, and open by one that can't.
 - `Form\FieldType::Identifier`: a short name such as a slug or a handle, filled from the fields its
   `data-identifier` hint names until the editor types in it, and limited by its `pattern` and `maxlength` hints. The
   add-on still checks what is posted.
-- `Form\Link` carries an optional `fragment` for a record or a record to create: the spot on its page, posted as the
+- `Form\Link` carries an optional `fragment` for a record or a record to create: the anchor on its page, posted as the
   link field's "fragment" and encoded as `record:<section>:<id>#<fragment>`. `Link::record()` and `Link::newRecord()`
   take it as a second argument. An address keeps any fragment in the address itself.
 - `Module\MenuItem` takes `count`: a number the host shows beside the item's label, such as how many items a menu

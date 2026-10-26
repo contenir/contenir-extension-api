@@ -25,8 +25,10 @@ final readonly class Group
 
     /**
      * @param list<string|list<string>> $rows  A field name for a one-column row, or a list of names for columns
-     * @param bool                      $aside Drawn beside the other groups, as a record's Publishing card is, by a
-     *                                         host with a sidebar; after them by one without
+     * @param bool                      $aside  Drawn beside the other groups, as a record's Publishing card is, by
+     *                                          a host with a sidebar; after them by one without
+     * @param bool                      $folded Folded away under its legend until opened, as advanced settings
+     *                                          are, by a host that can fold a group; open by one that can't
      *
      * @throws InvalidDeclarationException When the id is malformed.
      */
@@ -35,6 +37,7 @@ final readonly class Group
         public string $legend,
         array $rows,
         public bool $aside = false,
+        public bool $folded = false,
     ) {
         Names::field($id);
 

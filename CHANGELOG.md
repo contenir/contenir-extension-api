@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `Event\SiteChangeEventInterface`: an add-on's own event, fired once it has changed what the public site shows
+  outside the records the CMS saves, such as publishing a menu. A host reacts to it as to a record save, clearing its
+  caches, purging the CDN's copy of the site and sending the site's webhook.
+
 ## [0.7.3] - 2026-10-26
 
 Additions for add-on forms and section menus, all optional for an add-on and safe for a host to draw as before.

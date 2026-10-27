@@ -121,6 +121,25 @@ status change, reorder, move, publish), settings saves, asset uploads and delete
 form entries, cache clears, migration runs, and `ExtensionPostFail`, fired when an add-on's code throws. Only the CMS
 fires these; an add-on fires its own events, under its own `Event\` namespace, through its context's dispatcher.
 
+An add-on that changes what the public site shows outside the records the CMS saves, such as publishing a menu,
+fires an event of its own that implements `Event\SiteChangeEventInterface` once the change is made. The CMS clears
+its caches, purges the CDN's copy of the site and sends the site's webhook after it, as after a record save:
+
+```php
+final readonly class MenuPostPublish extends AbstractPostEvent implements SiteChangeEventInterface
+{
+    public function __construct(
+        public string $handle,
+        Outcome $outcome = Outcome::Done,
+        string $reason = '',
+    ) {
+        parent::__construct($outcome, $reason);
+    }
+}
+
+$context->events()->dispatch(new MenuPostPublish($menu->handle));
+```
+
 A new record fires the Create events and then the Save events at each stage, so a listener to `RecordPostSave` hears
 creations too. A chain of events fired from listeners may go `Event\ChainLimit::DEPTH` (8) deep, and an event can't
 recur within its own chain.

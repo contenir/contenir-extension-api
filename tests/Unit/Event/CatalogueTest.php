@@ -82,7 +82,7 @@ final class CatalogueTest extends TestCase
 
         $names = array_map(Catalogue::name(...), Catalogue::EVENTS);
 
-        static::assertSame([49, 49, 49], [count(Catalogue::EVENTS), $core, count(array_unique($names))]);
+        static::assertSame([55, 55, 55], [count(Catalogue::EVENTS), $core, count(array_unique($names))]);
     }
 
     #[Test]

@@ -553,12 +553,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/contenir/contenir-qa-tools.git",
-                "reference": "59510ed76551e2d3d6e7ca2a5b4ca27762b2410d"
+                "reference": "b8d822b1c7370e127665cf4766d3ad77c42471ff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/contenir/contenir-qa-tools/zipball/59510ed76551e2d3d6e7ca2a5b4ca27762b2410d",
-                "reference": "59510ed76551e2d3d6e7ca2a5b4ca27762b2410d",
+                "url": "https://api.github.com/repos/contenir/contenir-qa-tools/zipball/b8d822b1c7370e127665cf4766d3ad77c42471ff",
+                "reference": "b8d822b1c7370e127665cf4766d3ad77c42471ff",
                 "shasum": ""
             },
             "require": {
@@ -587,20 +587,20 @@
             "support": {
                 "source": "https://github.com/contenir/contenir-qa-tools"
             },
-            "time": "2026-10-21T04:07:11+00:00"
+            "time": "2026-10-12T10:46:59+00:00"
         },
         {
             "name": "contenir/contenir-storage",
-            "version": "v2.4.0",
+            "version": "v2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/contenir/contenir-storage.git",
-                "reference": "322484f21df3b5894fd3cf38f508eaf41822828e"
+                "reference": "09c75c3184a6688bb5ca8f1f246fc057894fadfc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/contenir/contenir-storage/zipball/322484f21df3b5894fd3cf38f508eaf41822828e",
-                "reference": "322484f21df3b5894fd3cf38f508eaf41822828e",
+                "url": "https://api.github.com/repos/contenir/contenir-storage/zipball/09c75c3184a6688bb5ca8f1f246fc057894fadfc",
+                "reference": "09c75c3184a6688bb5ca8f1f246fc057894fadfc",
                 "shasum": ""
             },
             "require": {
@@ -612,11 +612,11 @@
                 "contenir/storage": "self.version"
             },
             "require-dev": {
-                "contenir/contenir-qa-tools": "0.1.x-dev",
                 "infection/infection": "^0.34.1",
                 "league/flysystem-aws-s3-v3": "^3.29",
                 "league/flysystem-memory": "^3.29",
                 "league/mime-type-detection": "^1.16",
+                "php-db/phpdb-qa-tools": "0.1.x-dev",
                 "phpunit/phpunit": "^11.5.42"
             },
             "suggest": {
@@ -641,9 +641,9 @@
             "description": "Framework-agnostic asset storage for Contenir CMS — local, S3-compatible, and Cloudflare Images adapters with a shared variant pipeline.",
             "support": {
                 "issues": "https://github.com/contenir/contenir-storage/issues",
-                "source": "https://github.com/contenir/contenir-storage/tree/v2.4.0"
+                "source": "https://github.com/contenir/contenir-storage/tree/v2.2.0"
             },
-            "time": "2026-10-23T03:05:06+00:00"
+            "time": "2026-10-05T13:35:15+00:00"
         },
         {
             "name": "fidry/cpu-core-counter",
@@ -1080,16 +1080,16 @@
         },
         {
             "name": "justinrainbow/json-schema",
-            "version": "6.14.0",
+            "version": "6.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jsonrainbow/json-schema.git",
-                "reference": "bae415e135dd68260c2d020ba392850231e9b1ab"
+                "reference": "e54aacc4c0657b3a4af4f628428d2702146828c6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/bae415e135dd68260c2d020ba392850231e9b1ab",
-                "reference": "bae415e135dd68260c2d020ba392850231e9b1ab",
+                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/e54aacc4c0657b3a4af4f628428d2702146828c6",
+                "reference": "e54aacc4c0657b3a4af4f628428d2702146828c6",
                 "shasum": ""
             },
             "require": {
@@ -1139,9 +1139,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jsonrainbow/json-schema/issues",
-                "source": "https://github.com/jsonrainbow/json-schema/tree/6.14.0"
+                "source": "https://github.com/jsonrainbow/json-schema/tree/6.13.1"
             },
-            "time": "2026-10-24T08:53:34+00:00"
+            "time": "2026-09-30T07:42:28+00:00"
         },
         {
             "name": "league/flysystem",
@@ -4783,9 +4783,9 @@
         "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
         "ext-dom": "*"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "platform-overrides": {
         "php": "8.3.99"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

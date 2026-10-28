@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Event;
 
 use Contenir\Extension\Api\Event\Asset\AssetDelete;
+use Contenir\Extension\Api\Event\Asset\AssetMove;
 use Contenir\Extension\Api\Event\Asset\AssetPostDelete;
+use Contenir\Extension\Api\Event\Asset\AssetPostMove;
+use Contenir\Extension\Api\Event\Asset\AssetPostUpdate;
 use Contenir\Extension\Api\Event\Asset\AssetPostUpload;
 use Contenir\Extension\Api\Event\Asset\AssetPreDelete;
+use Contenir\Extension\Api\Event\Asset\AssetPreMove;
+use Contenir\Extension\Api\Event\Asset\AssetPreUpdate;
 use Contenir\Extension\Api\Event\Asset\AssetPreUpload;
+use Contenir\Extension\Api\Event\Asset\AssetUpdate;
 use Contenir\Extension\Api\Event\Asset\AssetUpload;
 use Contenir\Extension\Api\Event\Cache\CachePostClear;
 use Contenir\Extension\Api\Event\Cache\CachePreClear;
@@ -97,10 +103,16 @@ final class Catalogue
         SettingsPreSave::class,
         SettingsSave::class,
         AssetDelete::class,
+        AssetMove::class,
         AssetPostDelete::class,
+        AssetPostMove::class,
+        AssetPostUpdate::class,
         AssetPostUpload::class,
         AssetPreDelete::class,
+        AssetPreMove::class,
+        AssetPreUpdate::class,
         AssetPreUpload::class,
+        AssetUpdate::class,
         AssetUpload::class,
         PermissionsChange::class,
         PermissionsPostChange::class,

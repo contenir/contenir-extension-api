@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `Event\Asset\AssetPreUpdate`, `AssetUpdate` and `AssetPostUpdate`: an asset changed in place—its details or
+  owner, its file replaced, or its variants generated—with what changed and what it is now.
+- `Event\Asset\AssetPreMove`, `AssetMove` and `AssetPostMove`: an asset's file moved to another folder or renamed,
+  with every path naming it, from one path to another.
+
 ## [0.7.4] - 2026-10-27
 
 ### Added

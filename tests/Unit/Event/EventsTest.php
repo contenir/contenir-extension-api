@@ -6,10 +6,16 @@ namespace Contenir\Extension\Api\Tests\Unit\Event;
 
 use Closure;
 use Contenir\Extension\Api\Event\Asset\AssetDelete;
+use Contenir\Extension\Api\Event\Asset\AssetMove;
 use Contenir\Extension\Api\Event\Asset\AssetPostDelete;
+use Contenir\Extension\Api\Event\Asset\AssetPostMove;
+use Contenir\Extension\Api\Event\Asset\AssetPostUpdate;
 use Contenir\Extension\Api\Event\Asset\AssetPostUpload;
 use Contenir\Extension\Api\Event\Asset\AssetPreDelete;
+use Contenir\Extension\Api\Event\Asset\AssetPreMove;
+use Contenir\Extension\Api\Event\Asset\AssetPreUpdate;
 use Contenir\Extension\Api\Event\Asset\AssetPreUpload;
+use Contenir\Extension\Api\Event\Asset\AssetUpdate;
 use Contenir\Extension\Api\Event\Asset\AssetUpload;
 use Contenir\Extension\Api\Event\Cache\CachePostClear;
 use Contenir\Extension\Api\Event\Cache\CachePreClear;
@@ -53,6 +59,45 @@ use function get_object_vars;
 final class EventsTest extends TestCase
 {
     /**
+     * @return array<string, array{Closure(): object, array<string, mixed>}>
+     */
+    public static function assetPayloadProvider(): array
+    {
+        return [
+            'AssetPreUpload'  => [static fn(): object => new AssetPreUpload('a/b.jpg'), ['path' => 'a/b.jpg']],
+            'AssetUpload'     => [static fn(): object => new AssetUpload('a/b.jpg'), ['path' => 'a/b.jpg']],
+            'AssetPostUpload' => [static fn(): object => new AssetPostUpload('a/b.jpg'), ['path' => 'a/b.jpg']],
+            'AssetPreDelete'  => [static fn(): object => new AssetPreDelete('a/b.jpg'), ['path' => 'a/b.jpg']],
+            'AssetDelete'     => [static fn(): object => new AssetDelete('a/b.jpg'), ['path' => 'a/b.jpg']],
+            'AssetPostDelete' => [static fn(): object => new AssetPostDelete('a/b.jpg'), ['path' => 'a/b.jpg']],
+            'AssetPreUpdate'  => [
+                static fn(): object => new AssetPreUpdate('a/b.jpg', ['caption' => 'Hall']),
+                ['path' => 'a/b.jpg', 'changes' => ['caption' => 'Hall']],
+            ],
+            'AssetUpdate'     => [
+                static fn(): object => new AssetUpdate('a/b.jpg', ['caption' => 'Hall']),
+                ['path' => 'a/b.jpg', 'changes' => ['caption' => 'Hall']],
+            ],
+            'AssetPostUpdate' => [
+                static fn(): object => new AssetPostUpdate('a/b.jpg', ['caption' => 'Hall']),
+                ['path' => 'a/b.jpg', 'changes' => ['caption' => 'Hall']],
+            ],
+            'AssetPreMove'    => [
+                static fn(): object => new AssetPreMove('a/b.jpg', 'a/c/b.jpg'),
+                ['from' => 'a/b.jpg', 'to' => 'a/c/b.jpg'],
+            ],
+            'AssetMove'       => [
+                static fn(): object => new AssetMove('a/b.jpg', 'a/c/b.jpg'),
+                ['from' => 'a/b.jpg', 'to' => 'a/c/b.jpg'],
+            ],
+            'AssetPostMove'   => [
+                static fn(): object => new AssetPostMove('a/b.jpg', 'a/c/b.jpg'),
+                ['from' => 'a/b.jpg', 'to' => 'a/c/b.jpg'],
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, array{Closure(): object}>
      */
     public static function changeEventProvider(): array
@@ -90,6 +135,8 @@ final class EventsTest extends TestCase
             'PermissionsPostChange' => [static fn(): object => new PermissionsPostChange('editor', $change)],
             'AssetPostUpload'       => [static fn(): object => new AssetPostUpload('a/b.jpg')],
             'AssetPostDelete'       => [static fn(): object => new AssetPostDelete('a/b.jpg')],
+            'AssetPostUpdate'       => [static fn(): object => new AssetPostUpdate('a/b.jpg', ['owner' => '7'])],
+            'AssetPostMove'         => [static fn(): object => new AssetPostMove('a/b.jpg', 'a/c/b.jpg')],
             'UserPostSignIn'        => [static fn(): object => new UserPostSignIn('ann', '10.0.0.1')],
             'EntryPostSubmit'       => [static fn(): object => new EntryPostSubmit('contact', 9, $change)],
             'EntryPostStatusChange' => [static fn(): object => new EntryPostStatusChange('contact', 9, $change)],
@@ -143,12 +190,6 @@ final class EventsTest extends TestCase
                 static fn(): object => new PermissionsPostChange('editor', $change),
                 ['role' => 'editor'],
             ],
-            'AssetPreUpload'        => [static fn(): object => new AssetPreUpload('a/b.jpg'), ['path' => 'a/b.jpg']],
-            'AssetUpload'           => [static fn(): object => new AssetUpload('a/b.jpg'), ['path' => 'a/b.jpg']],
-            'AssetPostUpload'       => [static fn(): object => new AssetPostUpload('a/b.jpg'), ['path' => 'a/b.jpg']],
-            'AssetPreDelete'        => [static fn(): object => new AssetPreDelete('a/b.jpg'), ['path' => 'a/b.jpg']],
-            'AssetDelete'           => [static fn(): object => new AssetDelete('a/b.jpg'), ['path' => 'a/b.jpg']],
-            'AssetPostDelete'       => [static fn(): object => new AssetPostDelete('a/b.jpg'), ['path' => 'a/b.jpg']],
             'UserPreSignIn'         => [
                 static fn(): object => new UserPreSignIn('ann', '10.0.0.1'),
                 ['username' => 'ann', 'ip' => '10.0.0.1'],
@@ -214,6 +255,8 @@ final class EventsTest extends TestCase
             'PermissionsPostChange' => [static fn(): object => new PermissionsPostChange('editor', $change, ...$why)],
             'AssetPostUpload'       => [static fn(): object => new AssetPostUpload('a/b.jpg', ...$why)],
             'AssetPostDelete'       => [static fn(): object => new AssetPostDelete('a/b.jpg', ...$why)],
+            'AssetPostUpdate'       => [static fn(): object => new AssetPostUpdate('a/b.jpg', [], ...$why)],
+            'AssetPostMove'         => [static fn(): object => new AssetPostMove('a/b.jpg', 'a/c/b.jpg', ...$why)],
             'UserPostSignIn'        => [static fn(): object => new UserPostSignIn('ann', '10.0.0.1', ...$why)],
             'EntryPostSubmit'       => [static fn(): object => new EntryPostSubmit('contact', null, $change, ...$why)],
             'EntryPostStatusChange' => [
@@ -233,6 +276,7 @@ final class EventsTest extends TestCase
      */
     #[Test]
     #[DataProvider('payloadProvider')]
+    #[DataProvider('assetPayloadProvider')]
     public function carriesItsSubject(Closure $event, array $payload): void
     {
         static::assertSame($payload, get_object_vars($event()));

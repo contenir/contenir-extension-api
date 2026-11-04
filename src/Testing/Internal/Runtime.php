@@ -10,6 +10,7 @@ use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Event\Extension\FailurePoint;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Log\SourceLogger;
+use Contenir\Extension\Api\Section\SectionsInterface;
 use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Testing\InMemoryContext;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
@@ -47,6 +48,7 @@ final class Runtime
      * @param Closure(): EventDispatcherInterface $events   A dispatcher for add-ons' own events
      * @param Closure(ExtensionPostFail): void    $announce Fires a failure to the listeners bound to it
      * @param Closure(Handle, string): SettingsInterface $settings Opens one of an add-on's settings sections
+     * @param (Closure(Handle): SectionsInterface)|null $sections The section blocks an add-on reads
      *
      * @mago-expect lint:excessive-parameter-list One parameter per part of an add-on's context.
      */
@@ -59,6 +61,7 @@ final class Runtime
         private readonly Closure $events,
         private readonly Closure $announce,
         private readonly Closure $settings,
+        private readonly ?Closure $sections = null,
     ) {}
 
     private static function shortName(string $class): string
@@ -79,6 +82,7 @@ final class Runtime
             $this->urls,
             ($this->events)(),
             fn(string $section): SettingsInterface => ($this->settings)($handle, $section),
+            null === $this->sections ? new NoSections() : ($this->sections)($handle),
         );
     }
 

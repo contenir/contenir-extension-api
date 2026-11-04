@@ -88,6 +88,11 @@ final class HostRecords implements RecordsInterface
         return null === $values ? null : RecordValues::summary($record, $values);
     }
 
+    public function isLinkable(string $section): bool
+    {
+        return array_key_exists($section, $this->linkable);
+    }
+
     #[Override]
     public function isPathFree(string $path): bool
     {

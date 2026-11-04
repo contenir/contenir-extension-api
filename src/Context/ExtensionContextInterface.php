@@ -6,6 +6,7 @@ namespace Contenir\Extension\Api\Context;
 
 use Contenir\Extension\Api\Exception\UnknownSettingException;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Section\SectionsInterface;
 use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use Psr\Clock\ClockInterface;
@@ -44,6 +45,13 @@ interface ExtensionContextInterface
      * (extension.<handle>).
      */
     public function logger(): LoggerInterface;
+
+    /**
+     * The site's sections that carry the add-on's block, and their records'
+     * values for the columns the blocks read. Empty for an add-on that
+     * declared no section block.
+     */
+    public function sections(): SectionsInterface;
 
     /**
      * The host's services.

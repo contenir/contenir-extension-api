@@ -7,7 +7,9 @@ namespace Contenir\Extension\Api\Testing;
 use Closure;
 use Contenir\Extension\Api\Context\ExtensionContextInterface;
 use Contenir\Extension\Api\Handle;
+use Contenir\Extension\Api\Section\SectionsInterface;
 use Contenir\Extension\Api\Settings\SettingsInterface;
+use Contenir\Extension\Api\Testing\Internal\NoSections;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use Override;
 use Psr\Clock\ClockInterface;
@@ -36,6 +38,7 @@ final readonly class InMemoryContext implements ExtensionContextInterface
         private UrlResolverInterface $urls,
         private EventDispatcherInterface $events,
         private Closure $settings,
+        private SectionsInterface $sections = new NoSections(),
     ) {}
 
     #[Override]
@@ -60,6 +63,12 @@ final readonly class InMemoryContext implements ExtensionContextInterface
     public function logger(): LoggerInterface
     {
         return $this->logger;
+    }
+
+    #[Override]
+    public function sections(): SectionsInterface
+    {
+        return $this->sections;
     }
 
     #[Override]

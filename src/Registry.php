@@ -31,6 +31,7 @@ use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Schedule\ScheduledTaskInterface;
 use Contenir\Extension\Api\Script\ScriptDeclaration;
 use Contenir\Extension\Api\Script\ScriptProviderInterface;
+use Contenir\Extension\Api\Section\SectionBlockInterface;
 use Contenir\Extension\Api\Service\ServiceDeclaration;
 use Contenir\Extension\Api\Service\ServiceFactoryInterface;
 use Contenir\Extension\Api\Settings\SettingsSection;
@@ -140,6 +141,11 @@ final class Registry
      * @var array<string, ServiceDeclaration> By the interface provided
      */
     private array $services = [];
+
+    /**
+     * @var class-string<SectionBlockInterface>|null
+     */
+    private ?string $sectionBlock = null;
 
     /**
      * @throws InvalidDeclarationException When the handle is malformed or reserved.
@@ -418,6 +424,7 @@ final class Registry
             dependencies: $this->dependencies,
             panels: $this->panels,
             services: $this->services,
+            sectionBlock: $this->sectionBlock,
         );
     }
 
@@ -452,6 +459,26 @@ final class Registry
             $name,
             Names::implementing('Script provider', $class, ScriptProviderInterface::class),
         );
+    }
+
+    /**
+     * Lets the site give the add-on a block on any of its sections: an
+     * element named after the add-on's handle, inside the section's
+     * <extensions> in admin.xml, such as <seo> for the seo add-on. $class
+     * tells the host which columns each block reads and which listeners it
+     * binds; the add-on reads its blocks from its context's sections().
+     *
+     * @param class-string<SectionBlockInterface> $class
+     *
+     * @throws InvalidDeclarationException When the class is not a section block reader, or one is already declared.
+     */
+    public function sectionBlock(string $class): void
+    {
+        if (null !== $this->sectionBlock) {
+            throw InvalidDeclarationException::because('The add-on has already declared its section block');
+        }
+
+        $this->sectionBlock = Names::implementing('Section block', $class, SectionBlockInterface::class);
     }
 
     /**

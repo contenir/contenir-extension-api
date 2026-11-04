@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Section blocks, for add-ons that work on a site's own records, such as SEO. A site gives an add-on a block on any of
+its sections in admin.xml, and the add-on reads its blocks, the values of the columns they name, and binds listeners
+to those sections without the site writing `<listen>` lines. Hosts must implement `sections()` on the add-on context
+and `block()` on the conformance driver.
+
+### Added
+
+- `Registry::sectionBlock()`: the add-on reads section blocks, with a `Section\SectionBlockInterface` that tells the
+  host which columns each block reads (`columns()`) and which listeners it binds (`listeners()`, as
+  `Section\ImpliedListener`s). A block is an element named after the add-on's handle inside a section's
+  `<extensions>`, such as `<seo>` for the seo add-on; the host never interprets it. `Registration::$sectionBlock`
+  names the reader.
+- `Context\ExtensionContextInterface::sections()`: the add-on's own `Section\SectionsInterface`. `blocks()` and
+  `block()` give its blocks as `Section\SectionBlock`s, each with its `Section\Element`, the section's fields and
+  whether it is linkable. `rows()` gives a section's records as `Record\RecordRow`s, with their status and the values
+  of the columns asked for, drafts included, by id, and refuses with `Exception\RowsRefusedException` a section
+  without the add-on's block or a column the block doesn't read.
+- An implied listener is bound to its block's section as a `<listen>` line would be, and a line the site writes for
+  the same listener and event replaces it. One the add-on doesn't declare is reported as an `ExtensionPostFail` at
+  the new `FailurePoint::Section`, as is a reader that fails; a failing reader reads no columns and binds nothing.
+- `Section\Element::parse()` and `fromDom()` read a block from XML or admin.xml's DOM.
+- `Conformance\HostDriverInterface::block()` puts a block in a section, and `AbstractSectionsConformanceTestCase`
+  checks a host's section blocks, with a `sections` handler and a block reader on the probe add-on.
+  `Testing\InMemoryHost` implements both.
+
 ## [0.7.5] - 2026-10-28
 
 ### Added

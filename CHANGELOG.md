@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.8.0] - 2026-11-04
 
 Section blocks, for add-ons that work on a site's own records, such as SEO. A site gives an add-on a block on any of
 its sections in admin.xml, and the add-on reads its blocks, the values of the columns they name, and binds listeners

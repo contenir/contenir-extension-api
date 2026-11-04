@@ -47,6 +47,19 @@ interface HostDriverInterface
     ): void;
 
     /**
+     * Puts the element in $xml inside $section's <extensions>, as the site's
+     * admin.xml does, and records the fields the section declares. The
+     * element's name is the add-on's handle; when that add-on is loaded and
+     * reads section blocks, its context lends the block and the host binds
+     * the listeners it implies. Called after boot().
+     *
+     * @param list<string> $fields
+     *
+     * @throws InvalidDeclarationException When $xml is not one well-formed element.
+     */
+    public function block(string $section, string $xml, array $fields = []): void;
+
+    /**
      * Installs $installed, enables the handles in $enabled, and loads the
      * enabled add-ons as the host does on a request. $services are made
      * available to add-on code through its context, beside the host's own.

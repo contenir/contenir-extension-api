@@ -13,6 +13,7 @@ use Contenir\Extension\Api\Module\Module;
 use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Script\ScriptDeclaration;
+use Contenir\Extension\Api\Section\SectionBlockInterface;
 use Contenir\Extension\Api\Service\ServiceDeclaration;
 use Contenir\Extension\Api\Settings\SettingsSection;
 
@@ -38,6 +39,7 @@ final readonly class Registration
      * @param array<string, Handle>                $dependencies
      * @param array<string, PanelDeclaration>      $panels
      * @param array<string, ServiceDeclaration>    $services     By the interface provided
+     * @param class-string<SectionBlockInterface>|null $sectionBlock What reads the add-on's section blocks, when it has any
      *
      * @mago-expect lint:excessive-parameter-list One parameter per extension point.
      */
@@ -57,5 +59,6 @@ final readonly class Registration
         public array $dependencies,
         public array $panels = [],
         public array $services = [],
+        public ?string $sectionBlock = null,
     ) {}
 }

@@ -47,6 +47,7 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\ShadeFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignupScripts;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberPanel;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberSections;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SyncSubscriber;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -170,6 +171,15 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function declaresASectionBlockReader(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->sectionBlock(SubscriberSections::class);
+
+        static::assertSame(SubscriberSections::class, $registry->registration()->sectionBlock);
+    }
+
+    #[Test]
     public function declaresDependencies(): void
     {
         $registry = new Registry('events');
@@ -265,9 +275,27 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function declaresNoSectionBlockReaderUntilAsked(): void
+    {
+        static::assertNull((new Registry('newsletter'))->registration()->sectionBlock);
+    }
+
+    #[Test]
     public function declaresNoServicesUntilAsked(): void
     {
         static::assertSame([], (new Registry('newsletter'))->registration()->services);
+    }
+
+    #[Test]
+    public function declaresOnlyOneSectionBlockReader(): void
+    {
+        $registry = new Registry('newsletter');
+        $registry->sectionBlock(SubscriberSections::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('The add-on has already declared its section block');
+
+        $registry->sectionBlock(SubscriberSections::class);
     }
 
     #[Test]
@@ -913,6 +941,15 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('Webhook "unsubscribe" is already declared');
 
         $registry->webhook('unsubscribe', SignedWebhook::class);
+    }
+
+    #[Test]
+    public function rejectsASectionBlockReaderOfTheWrongKind(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Section block');
+
+        (new Registry('newsletter'))->sectionBlock(SubscriberPanel::class);
     }
 
     #[Test]

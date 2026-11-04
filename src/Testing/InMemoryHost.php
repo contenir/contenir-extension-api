@@ -11,6 +11,7 @@ use Contenir\Extension\Api\Editor\CurrentEditorInterface;
 use Contenir\Extension\Api\Editor\Editor;
 use Contenir\Extension\Api\Event\ActionResult;
 use Contenir\Extension\Api\Event\Catalogue;
+use Contenir\Extension\Api\Event\EventInterface;
 use Contenir\Extension\Api\Event\Extension\ExtensionPostFail;
 use Contenir\Extension\Api\Event\Extension\FailurePoint;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
@@ -24,6 +25,8 @@ use Contenir\Extension\Api\Record\LinkableSection;
 use Contenir\Extension\Api\Record\RecordsInterface;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
+use Contenir\Extension\Api\Section\Element;
+use Contenir\Extension\Api\Section\SectionsInterface;
 use Contenir\Extension\Api\Settings\SettingsInterface;
 use Contenir\Extension\Api\Testing\Internal\AddOnEvents;
 use Contenir\Extension\Api\Testing\Internal\AdminHandlers;
@@ -34,12 +37,14 @@ use Contenir\Extension\Api\Testing\Internal\Chain;
 use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
 use Contenir\Extension\Api\Testing\Internal\HostRecords;
+use Contenir\Extension\Api\Testing\Internal\HostSections;
 use Contenir\Extension\Api\Testing\Internal\Operations;
 use Contenir\Extension\Api\Testing\Internal\ProvidedServices;
 use Contenir\Extension\Api\Testing\Internal\Records;
 use Contenir\Extension\Api\Testing\Internal\Responder;
 use Contenir\Extension\Api\Testing\Internal\Runtime;
 use Contenir\Extension\Api\Testing\Internal\Saver;
+use Contenir\Extension\Api\Testing\Internal\SectionBlocks;
 use Contenir\Extension\Api\Testing\Internal\Services;
 use Contenir\Extension\Api\Testing\Internal\Settings;
 use Contenir\Extension\Api\Testing\Internal\SignedIn;
@@ -106,6 +111,8 @@ final class InMemoryHost implements HostDriverInterface
 
     private readonly HostRecords $hostRecords;
 
+    private readonly HostSections $sections;
+
     /**
      * @var array<string, Registration> By handle
      */
@@ -147,6 +154,7 @@ final class InMemoryHost implements HostDriverInterface
                 $this->records,
                 $this->dispatcher,
             ),
+            fn(Handle $handle): SectionsInterface => $this->sections->for($this->registrations[$handle->value] ?? null),
         );
         $this->dispatcher  = new Dispatcher($this->bindings, $this->runtime);
         $this->checks      = new Checks($this->runtime);
@@ -154,6 +162,14 @@ final class InMemoryHost implements HostDriverInterface
         $this->provided    = new ProvidedServices($this->runtime);
         $this->signedIn    = new SignedIn();
         $this->hostRecords = new HostRecords($this->records, $this->dispatcher, $this->signedIn);
+        $this->sections    = new HostSections(
+            new SectionBlocks(),
+            $this->records,
+            $this->hostRecords,
+            $this->runtime,
+            $this->bindings,
+            $this->resolve(...),
+        );
         $this->services->add([
             RecordsInterface::class       => $this->hostRecords,
             CurrentEditorInterface::class => $this->signedIn,
@@ -179,30 +195,24 @@ final class InMemoryHost implements HostDriverInterface
         array $fields = [],
         ?int $order = null,
     ): void {
-        $class        = Catalogue::find($event) ?? $event;
-        $registration = $this->registrations[$handle] ?? throw InvalidDeclarationException::because(
-                sprintf('No add-on "%s" is loaded', $handle),
-            );
+        [$class, $bound] = $this->resolve($handle, $listener, $event, $fields);
+        $this->bindings->add($section, $class, $bound, $order);
+    }
 
-        foreach ($registration->listeners as $declaration) {
-            if ($listener !== $declaration->name || $class !== $declaration->event) {
-                continue;
-            }
-
-            $scope = $declaration->scope->narrow(...$fields);
-            $this->bindings->add(
-                $section,
-                $class,
-                new BoundListener($registration->handle, $declaration, $scope),
-                $order,
-            );
-
-            return;
-        }
-
-        throw InvalidDeclarationException::because(
-            sprintf('Add-on "%s" has no listener "%s" for %s', $handle, $listener, $event),
-        );
+    /**
+     * Puts the element in $xml inside $section's <extensions>, with the
+     * section's fields, and binds the listeners it implies when the add-on
+     * it names is loaded: so call it after boot().
+     *
+     * @param list<string> $fields
+     *
+     * @throws InvalidDeclarationException When $xml is not one well-formed element.
+     */
+    #[Override]
+    public function block(string $section, string $xml, array $fields = []): void
+    {
+        $element = Element::parse($xml);
+        $this->sections->put($section, $element, $fields, $this->registrations[$element->name] ?? null);
     }
 
     #[Override]
@@ -397,5 +407,35 @@ final class InMemoryHost implements HostDriverInterface
                 ['source' => "extension.{$handle}"],
             );
         }
+    }
+
+    /**
+     * The event class and bound listener a line names.
+     *
+     * @param list<string> $fields
+     *
+     * @return array{class-string<EventInterface>, BoundListener}
+     *
+     * @throws InvalidDeclarationException When the add-on is not loaded or declared no such listener, or the line widens its scope.
+     */
+    private function resolve(string $handle, string $listener, string $event, array $fields): array
+    {
+        $class        = Catalogue::find($event) ?? $event;
+        $registration = $this->registrations[$handle] ?? throw InvalidDeclarationException::because(
+                sprintf('No add-on "%s" is loaded', $handle),
+            );
+
+        foreach ($registration->listeners as $declaration) {
+            if ($listener === $declaration->name && $class === $declaration->event) {
+                return [
+                    $declaration->event,
+                    new BoundListener($registration->handle, $declaration, $declaration->scope->narrow(...$fields)),
+                ];
+            }
+        }
+
+        throw InvalidDeclarationException::because(
+            sprintf('Add-on "%s" has no listener "%s" for %s', $handle, $listener, $event),
+        );
     }
 }

@@ -23,7 +23,9 @@ use function json_decode;
  * add-on inside a section's <extensions> reaches that add-on alone, whole and
  * uninterpreted; it reads the values of the columns its block names and no
  * others; and the listeners a block implies are bound to its section unless
- * the site writes its own line for them.
+ * the site writes its own line for them. A host may work out a section's
+ * implied listeners when the block arrives or when the section's first event
+ * fires; the tests save a record before reading what failed.
  *
  * @api
  */
@@ -106,6 +108,7 @@ abstract class AbstractSectionsConformanceTestCase extends AbstractConformanceTe
     public function aFailingReaderIsReportedAndReadsNothing(): void
     {
         $this->host->block(self::SECTION, '<probe><broken/><column>title</column></probe>');
+        $this->host->save(self::SECTION, 1, ['title' => 'New title']);
         $refused = $this->ask(['do' => 'rows', 'section' => self::SECTION, 'columns' => 'title']);
 
         static::assertSame(
@@ -152,6 +155,7 @@ abstract class AbstractSectionsConformanceTestCase extends AbstractConformanceTe
     public function anImpliedListenerTheAddOnLacksIsReportedAndNotBound(): void
     {
         $this->host->block(self::SECTION, '<probe><listen event="RecordPreSave">no-such-listener</listen></probe>');
+        $this->host->save(self::SECTION, 1, ['title' => 'New title']);
 
         static::assertSame([FailurePoint::Section], $this->failurePoints());
     }

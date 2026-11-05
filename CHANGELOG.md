@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-11-05
+
+An add-on can ask the site about a saved record. It is additive: a host that doesn't lend the new service keeps
+working, since an add-on asks `has()` first.
+
+### Added
+
+- `Site\SiteRequestsInterface`, lent from `services()`: `post()` has the host sign a saved record as it signs a
+  preview and post it to one of the site's own `/api/` paths, which `Site\SitePath` checks, answering with a
+  `Site\SiteAnswer`, or null when the site can't be asked. For an add-on that needs what the site renders, such as SEO's
+  `/api/seo/inspect`.
+- `Testing\InMemoryHost::answerSite()` and `sitePosts()` stand in for the site in an add-on's tests.
+
 ## [0.8.0] - 2026-11-04
 
 Section blocks, for add-ons that work on a site's own records, such as SEO. A site gives an add-on a block on any of

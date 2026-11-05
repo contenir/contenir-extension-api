@@ -257,6 +257,14 @@ A host may also lend add-ons the site's own settings, read-only, from `services(
 `Settings\SiteSettingsInterface`, which an add-on asks `has()` for first: `get('contact.telephone')` reads a setting
 by its dotted key as text. `Testing\MemorySiteSettings` holds them in memory for tests.
 
+A host may also lend add-ons a way to ask the site about a saved record, from `services()` as
+`Site\SiteRequestsInterface`, which an add-on asks `has()` for first. `post($record, '/api/seo/inspect', ['path' =>
+'/about'])` has the host sign the record's values as it signs a preview, with the keys it shares with the site, and
+post them to one of the site's own `/api/` paths. The add-on names the endpoint and reads its answer, a
+`Site\SiteAnswer`, and never sees the keys, the token or the values sent. It gets null when the site can't be asked,
+and falls back on what it can read itself. `InMemoryHost::answerSite()` says what the site answers in tests, and
+`sitePosts()` lists what was asked.
+
 A host may also lend add-ons who is signed in from `services()` as `Editor\CurrentEditorInterface`, which an add-on
 asks `has()` for first: `current()` is the `Editor\Editor`, with their user id and name, for the admin request being
 answered, and null when no one is signed in, as in a public webhook, a scheduled task or a background listener.

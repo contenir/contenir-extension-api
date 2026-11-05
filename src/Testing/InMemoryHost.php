@@ -28,6 +28,8 @@ use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Section\Element;
 use Contenir\Extension\Api\Section\SectionsInterface;
 use Contenir\Extension\Api\Settings\SettingsInterface;
+use Contenir\Extension\Api\Site\SiteAnswer;
+use Contenir\Extension\Api\Site\SiteRequestsInterface;
 use Contenir\Extension\Api\Testing\Internal\AddOnEvents;
 use Contenir\Extension\Api\Testing\Internal\AdminHandlers;
 use Contenir\Extension\Api\Testing\Internal\Answers;
@@ -38,6 +40,7 @@ use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
 use Contenir\Extension\Api\Testing\Internal\HostRecords;
 use Contenir\Extension\Api\Testing\Internal\HostSections;
+use Contenir\Extension\Api\Testing\Internal\HostSite;
 use Contenir\Extension\Api\Testing\Internal\Operations;
 use Contenir\Extension\Api\Testing\Internal\ProvidedServices;
 use Contenir\Extension\Api\Testing\Internal\Records;
@@ -49,6 +52,7 @@ use Contenir\Extension\Api\Testing\Internal\Services;
 use Contenir\Extension\Api\Testing\Internal\Settings;
 use Contenir\Extension\Api\Testing\Internal\SignedIn;
 use Contenir\Extension\Api\Testing\Internal\Webhooks;
+use Contenir\Extension\Api\Url\RecordReference;
 use Contenir\Extension\Api\Url\UrlResolverInterface;
 use LogicException;
 use Override;
@@ -78,7 +82,8 @@ use function sprintf;
  * records act for an editor holding the request's grants; outside one, as
  * when a test calls an add-on's classes with context(), for an editor
  * allowed everything. It lends Editor\CurrentEditorInterface too, naming the
- * editor a request was answered for, and no one outside a request.
+ * editor a request was answered for, and no one outside a request, and
+ * Site\SiteRequestsInterface, with a site answering as answerSite() says.
  *
  * @api
  *
@@ -108,6 +113,8 @@ final class InMemoryHost implements HostDriverInterface
     private readonly ProvidedServices $provided;
 
     private readonly SignedIn $signedIn;
+
+    private readonly HostSite $hostSite;
 
     private readonly HostRecords $hostRecords;
 
@@ -170,9 +177,11 @@ final class InMemoryHost implements HostDriverInterface
             $this->bindings,
             $this->resolve(...),
         );
+        $this->hostSite = new HostSite($this->records);
         $this->services->add([
             RecordsInterface::class       => $this->hostRecords,
             CurrentEditorInterface::class => $this->signedIn,
+            SiteRequestsInterface::class  => $this->hostSite,
         ]);
 
         $responder     = new Responder($responses, $streams);
@@ -181,6 +190,17 @@ final class InMemoryHost implements HostDriverInterface
             new Webhooks($this->runtime, $responder),
             $responder,
         );
+    }
+
+    /**
+     * Has the site answer $path, for an add-on's tests. A path with no answer
+     * is one the site didn't answer.
+     *
+     * @throws InvalidDeclarationException When the path isn't one of the site's /api/ paths.
+     */
+    public function answerSite(string $path, SiteAnswer $answer): void
+    {
+        $this->hostSite->answer($path, $answer);
     }
 
     /**
@@ -383,6 +403,16 @@ final class InMemoryHost implements HostDriverInterface
     public function seed(string $section, string|int $id, array $values): void
     {
         $this->records->put($section, $id, $values);
+    }
+
+    /**
+     * What add-ons have asked the site, for an add-on's tests.
+     *
+     * @return list<array{record: RecordReference, path: string, fields: array<string, string>}>
+     */
+    public function sitePosts(): array
+    {
+        return $this->hostSite->posts();
     }
 
     #[Override]

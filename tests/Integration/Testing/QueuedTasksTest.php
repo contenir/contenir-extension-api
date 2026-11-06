@@ -96,6 +96,20 @@ final class QueuedTasksTest extends TestCase
         static::assertSame(0, $this->ran());
     }
 
+    #[Test]
+    public function signsTheEditorOutOnceTheirTaskHasRun(): void
+    {
+        $this->host->handle(
+            $this->http->createServerRequest('GET', '/admin/extension/queued/queue'),
+            ['extension.queued.queue'],
+            new Editor(7, 'Ann Editor'),
+        );
+        $this->queue()->enqueue('queued', 'record', ['n' => 2]);
+        $this->host->runQueued();
+
+        static::assertSame('ran [{"n":2},null]', $this->lastRun());
+    }
+
     #[Override]
     protected function setUp(): void
     {

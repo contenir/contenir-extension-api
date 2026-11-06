@@ -879,6 +879,14 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAQueuedTaskWithAnInvalidName(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+
+        (new Registry('seo'))->task('Not a name', RecordingTask::class);
+    }
+
+    #[Test]
     public function rejectsAScheduledClassOfTheWrongKind(): void
     {
         $this->expectException(InvalidDeclarationException::class);

@@ -87,9 +87,9 @@ final class QueuedTasks implements TaskQueueInterface
                     $queued['task']->name,
                     $failure,
                 );
-            } finally {
-                $this->signedIn->signOut();
             }
+
+            $this->signedIn->signOut();
         }
 
         return $ran;

@@ -46,18 +46,20 @@ final class AddOnSectionsTest extends TestCase
     }
 
     #[Test]
+    public function anAddOnWithNoSectionBlocksRefusesASave(): void
+    {
+        $this->expectException(BlockNotSavedException::class);
+        $this->expectExceptionMessage('does not save its configuration');
+
+        (new NoSections())->save(self::SECTION, new Element('seo'), '');
+    }
+
+    #[Test]
     public function anAddOnWithNoSectionBlocksSavesNothing(): void
     {
         $none = new NoSections();
 
-        $this->expectException(BlockNotSavedException::class);
-        $this->expectExceptionMessage('does not save its configuration');
-
-        try {
-            static::assertSame(['', false], [$none->version(), $none->saves()]);
-        } finally {
-            $none->save(self::SECTION, new Element('seo'), '');
-        }
+        static::assertSame(['', false], [$none->version(), $none->saves()]);
     }
 
     #[Test]
@@ -87,7 +89,7 @@ final class AddOnSectionsTest extends TestCase
         $before = $this->sections->version();
         $this->sections->save(self::SECTION, new Element('seo'), $before);
 
-        static::assertNotSame($before, $this->sections->version());
+        static::assertSame(['1', '2'], [$before, $this->sections->version()]);
     }
 
     #[Test]

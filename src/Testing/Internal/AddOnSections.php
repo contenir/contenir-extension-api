@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Contenir\Extension\Api\Testing\Internal;
 
 use Closure;
+use Contenir\Extension\Api\Exception\BlockNotSavedException;
 use Contenir\Extension\Api\Exception\RowsRefusedException;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Record\RecordRow;
+use Contenir\Extension\Api\Section\Element;
 use Contenir\Extension\Api\Section\SectionBlock;
 use Contenir\Extension\Api\Section\SectionsInterface;
 use Override;
@@ -19,6 +21,7 @@ use function array_slice;
 use function array_values;
 use function in_array;
 use function ksort;
+use function sprintf;
 
 use const SORT_NATURAL;
 
@@ -99,5 +102,36 @@ final readonly class AddOnSections implements SectionsInterface
             static fn(string|int $id): RecordRow => RecordValues::row($section, $id, $stored[$id] ?? [], $columns),
             $chosen,
         );
+    }
+
+    #[Override]
+    public function save(string $section, Element $block, string $version): void
+    {
+        if ($version !== $this->version()) {
+            throw BlockNotSavedException::changed();
+        }
+
+        if ($block->name !== $this->handle->value) {
+            throw BlockNotSavedException::refused(sprintf(
+                'A block on %s is named %s, not %s',
+                $section,
+                $this->handle->value,
+                $block->name,
+            ));
+        }
+
+        $this->blocks->put($section, $block, $this->blocks->fields($section));
+    }
+
+    #[Override]
+    public function saves(): bool
+    {
+        return true;
+    }
+
+    #[Override]
+    public function version(): string
+    {
+        return (string) $this->blocks->revision();
     }
 }

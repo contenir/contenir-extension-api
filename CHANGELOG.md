@@ -8,6 +8,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `SectionsInterface::saves()`, `version()` and `save()`: an add-on replaces its own block on a section in the site's admin.xml, leaving the rest of the section alone. The host saves only where the site's configuration is developed, refuses a save made against a configuration that has since changed, and checks the result loads, each with a `BlockNotSavedException` saying why. A host without it cannot be asked to save.
 - `RecordList`, a list of records the host draws as it draws its own: the table, each row's box and links, Select all,
   what can be done to the ticked rows, and pagination, or a message when it's empty. A template prints it with
   `$view->recordList($list)`, and an add-on calling that requires this version.

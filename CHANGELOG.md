@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.2] - 2026-11-06
+
+A record panel can show an image, rows of what needs attention and an actions menu, and an add-on can change many
+saved records at once. Both are additive: the new `Panel` arguments are optional and last, so every existing
+`new Panel(...)` call keeps working and draws as before, and a host that doesn't lend the new service keeps working,
+since an add-on asks `has()` first. Released as a patch, not 0.10.0, so the other add-ons' `^0.9` constraints still
+allow it.
+
+### Added
+
+- `Panel\Panel` takes `image` (a `Panel\PanelImage`: URL and alt text, cropped by the host to 1.91 to 1), `rows` (a
+  list of `Panel\PanelRow`: label, short detail and an optional `Panel\Link` for its Fix button) and `menu` (a list of
+  `Panel\Link`, drawn as one "Actions" button).
+- `Record\RecordUpdatesInterface`, lent from `services()`: `update()` takes up to `MAX_RECORDS` (50) `Record\RecordUpdate`s
+  and answers a `Record\RecordUpdateResult` for each, in order, carrying the save's `ActionResult` and, when Done, the
+  values the changed fields held before. Each record is saved through the host's normal save, on its own.
+- `Testing\InMemoryHost` lends `RecordUpdatesInterface`, so an add-on's tests can run bulk updates.
+
 ## [0.9.1] - 2026-11-06
 
 An add-on can name a section as the site does. It is additive: `heading` is optional and last, so every existing

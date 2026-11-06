@@ -290,6 +290,31 @@ with the new id, or Stopped with field errors such as a path in use under `path`
 open on the site's database, the record is written inside it and rolls back with it, so a record and the row that
 links to it are saved together or not at all.
 
+A host may also lend add-ons changes to saved records as `Record\RecordUpdatesInterface`, which an add-on asks `has()`
+for first and offers no bulk tool without. `update()` takes up to `MAX_RECORDS` (50) `Record\RecordUpdate`s, each a
+record and the values to set by field, and answers one `Record\RecordUpdateResult` for each, in the same order:
+
+```php
+$updates = $context->services()->get(RecordUpdatesInterface::class);
+
+$results = $updates->update([
+    new RecordUpdate(new RecordReference('site.page', 12), ['seo' => '{"description":"About our studio"}']),
+]);
+
+$results[0]->succeeded();   // the save's ActionResult: Done, Stopped with field errors, or Failed
+$results[0]->previous;      // when Done, what the changed fields held before, by field: keep it for an undo
+```
+
+Each record goes through the host's normal save, so validation, the extension events and holds run and the
+signed-in editor needs the permission to update it. Each succeeds or fails on its own, with no transaction around the
+call, so one that is stopped never keeps the others from being saved. An add-on with more than 50 splits them into
+calls of 50, typically in a background task.
+
+A record panel (`Panel\Panel`) is a title with optional parts: a `Panel\PanelImage` shown first (the host crops it to a
+share image's 1.91 to 1), `Panel\PanelRow`s for what needs attention, each with a short detail and a `Fix` link, the
+paragraphs and links it always had, and a `menu` of links drawn as one "Actions" button. A panel with only a title,
+paragraphs and links is drawn as before, and a host that predates the new parts leaves them out.
+
 The operation contracts the legacy CMS ships today (`Operation\Operation`, `Operation\Contribution`,
 `Operation\OperationResult` and the context, handler, save-listener and row-hydrator interfaces) and
 `IconPathProviderInterface` live here too, with the same shape, so the legacy CMS can alias its old names to them for

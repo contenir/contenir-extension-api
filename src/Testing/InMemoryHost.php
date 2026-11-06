@@ -23,6 +23,7 @@ use Contenir\Extension\Api\Module\MenuInterface;
 use Contenir\Extension\Api\Operation\OperationResultInterface;
 use Contenir\Extension\Api\Record\LinkableSection;
 use Contenir\Extension\Api\Record\RecordsInterface;
+use Contenir\Extension\Api\Record\RecordUpdatesInterface;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Section\Element;
@@ -39,6 +40,7 @@ use Contenir\Extension\Api\Testing\Internal\Chain;
 use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
 use Contenir\Extension\Api\Testing\Internal\HostRecords;
+use Contenir\Extension\Api\Testing\Internal\HostRecordUpdates;
 use Contenir\Extension\Api\Testing\Internal\HostSections;
 use Contenir\Extension\Api\Testing\Internal\HostSite;
 use Contenir\Extension\Api\Testing\Internal\Operations;
@@ -180,6 +182,7 @@ final class InMemoryHost implements HostDriverInterface
         $this->hostSite = new HostSite($this->records);
         $this->services->add([
             RecordsInterface::class       => $this->hostRecords,
+            RecordUpdatesInterface::class => new HostRecordUpdates($this->records, $this->dispatcher, $this->signedIn),
             CurrentEditorInterface::class => $this->signedIn,
             SiteRequestsInterface::class  => $this->hostSite,
         ]);

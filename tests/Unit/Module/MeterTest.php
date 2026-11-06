@@ -70,6 +70,27 @@ final class MeterTest extends TestCase
     }
 
     #[Test]
+    public function keepsTheAreasNameUnlessGivenAHeading(): void
+    {
+        static::assertSame(
+            [null, 'SEO ranking'],
+            [
+                (new Meter('72', 'Needs work', MeterTone::Warning))->heading,
+                (new Meter('72', 'Needs work', MeterTone::Warning, heading: 'SEO ranking'))->heading,
+            ],
+        );
+    }
+
+    #[Test]
+    public function rejectsABlankHeading(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('A meter heading must not be empty');
+
+        new Meter('72', 'Needs work', MeterTone::Warning, heading: ' ');
+    }
+
+    #[Test]
     public function rejectsASegmentWithABlankAddress(): void
     {
         $this->expectException(InvalidDeclarationException::class);

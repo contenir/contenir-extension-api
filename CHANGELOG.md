@@ -13,6 +13,7 @@ adheres to [Semantic Versioning](https://semver.org/).
   `$view->recordList($list)`, and an add-on calling that requires this version.
 - `DisplayedFieldTypeInterface` and `FieldDisplayLine`: a field type says how its value reads on a record's View page, as labelled
   lines with an optional note the host draws as an info label, in place of what is stored as plain text.
+- `MeterSegment` takes an optional address, which the host draws its legend entry as a link to.
 - `PanelPreview`, how a record reads as a search result, which a record panel shows under its image.
 
 ## [0.9.2] - 2026-11-06

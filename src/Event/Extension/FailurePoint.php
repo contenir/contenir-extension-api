@@ -16,10 +16,12 @@ enum FailurePoint: string
     case Handler   = 'handler';
     case Listener  = 'listener';
     case Menu      = 'menu';
+    case Meter     = 'meter';
     case Operation = 'operation';
     case Panel     = 'panel';
     case Schedule  = 'schedule';
     case Section   = 'section';
     case Service   = 'service';
+    case Task      = 'task';
     case Webhook   = 'webhook';
 }

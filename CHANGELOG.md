@@ -4,6 +4,38 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.2] - 2026-11-06
+
+A record panel can show an image, rows of what needs attention and an actions menu, and an add-on can change many
+saved records at once. Both are additive: the new `Panel` arguments are optional and last, so every existing
+`new Panel(...)` call keeps working and draws as before, and a host that doesn't lend the new service keeps working,
+since an add-on asks `has()` first. Released as a patch, not 0.10.0, so the other add-ons' `^0.9` constraints still
+allow it.
+
+### Added
+
+- `Queue\TaskQueueInterface`, lent from `services()`, and `Queue\QueuedTaskInterface`, declared with `Registry::task()`: an add-on queues its own task, with a JSON payload, for the host's job runner. The task runs as the editor signed in when it was queued, and the services it is lent, such as the record updates, check that editor's permissions again when it runs. A host without a job runner doesn't lend the queue, so an add-on asks `has()` first. `Testing\InMemoryHost` lends it and `runQueued()` runs what is queued; `Event\Extension\FailurePoint` gains `Task`, `Registration` takes the `tasks` as an optional last argument.
+- `Module\MeterInterface`, declared with `Registry::meter()` after `module()`: a module reads how it stands on the host's dashboard card for it. It answers a `Module\Meter` (a headline value and label, a `Module\MeterTone`, an optional caption and a list of `Module\MeterSegment` for one divided bar and its legend) or null while there is nothing to read yet. The host draws every module's meter in one shared layout. `Module\Module` takes the class as an optional last `meter` argument, and `Event\Extension\FailurePoint` gains `Meter`, where a failing meter is reported.
+- `Panel\Panel` takes `image` (a `Panel\PanelImage`: URL and alt text, cropped by the host to 1.91 to 1), `rows` (a
+  list of `Panel\PanelRow`: label, short detail and an optional `Panel\Link` for its Fix button) and `menu` (a list of
+  `Panel\Link`, drawn as one "Actions" button).
+- `Record\RecordUpdatesInterface`, lent from `services()`: `update()` takes up to `MAX_RECORDS` (50) `Record\RecordUpdate`s
+  and answers a `Record\RecordUpdateResult` for each, in order, carrying the save's `ActionResult` and, when Done, the
+  values the changed fields held before. Each record is saved through the host's normal save, on its own.
+- `Testing\InMemoryHost` lends `RecordUpdatesInterface`, so an add-on's tests can run bulk updates.
+- `Conformance\AbstractRecordUpdatesConformanceTestCase`, for a host that lends the updates: it extends the records case, so a host extends it in place of that one. It checks that each update goes through the normal save (a Pre listener can stop it, a main-stage failure rolls it back, the Save events fire and the Create ones do not), that the editor needs permission to update the section, that a stopped record leaves the others saved, and the 50-record limit. `AbstractRecordsConformanceTestCase::ask()` and `HANDLER` are now protected, for it to build on.
+
+## [0.9.1] - 2026-11-06
+
+An add-on can name a section as the site does. It is additive: `heading` is optional and last, so every existing
+`new LinkableSection(...)` call keeps working, and a host that doesn't fill it leaves it null. Released as a patch,
+not 0.10.0, because the other add-ons' constraints stop at ^0.9 and a new minor would need each re-released.
+
+### Added
+
+- `Record\LinkableSection::$heading`, the section's own title in the site's admin.xml ("Site Pages", "Projects"),
+  where `$title` stays the name of one record ("Page", "Project"). Null when the host gives none.
+
 ## [0.9.0] - 2026-11-05
 
 An add-on can ask the site about a saved record. It is additive: a host that doesn't lend the new service keeps

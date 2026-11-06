@@ -42,6 +42,7 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\ListFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\MailingListFactory;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\MailingListInterface;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\PurgeHandler;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\RecordingTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ResyncTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ShadeFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
@@ -49,6 +50,7 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\SignupScripts;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberPanel;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberSections;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SyncSubscriber;
+use Contenir\Extension\Api\Tests\TestAsset\Module\ProbeMeter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -112,6 +114,16 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function declaresAModuleMeter(): void
+    {
+        $registry = new Registry('seo');
+        $registry->module('/addon/admin.xml');
+        $registry->meter(ProbeMeter::class);
+
+        static::assertSame(ProbeMeter::class, $registry->registration()->module->meter);
+    }
+
+    #[Test]
     public function declaresAModuleWithItsPieces(): void
     {
         $registry = new Registry('formbuilder');
@@ -168,6 +180,15 @@ final class RegistryTest extends TestCase
             )],
             $registry->registration()->listeners,
         );
+    }
+
+    #[Test]
+    public function declaresAQueuedTask(): void
+    {
+        $registry = new Registry('seo');
+        $registry->task('apply', RecordingTask::class);
+
+        static::assertSame(RecordingTask::class, $registry->registration()->tasks['apply']->class);
     }
 
     #[Test]
@@ -735,6 +756,26 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAMeterOutsideAModule(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('Only a module has a dashboard card: declare module() first');
+
+        (new Registry('seo'))->meter(ProbeMeter::class);
+    }
+
+    #[Test]
+    public function rejectsAMeterThatIsNotOne(): void
+    {
+        $registry = new Registry('seo');
+        $registry->module('/addon/admin.xml');
+
+        $this->expectException(InvalidDeclarationException::class);
+
+        $registry->meter(ProbeMenu::class);
+    }
+
+    #[Test]
     public function rejectsAMigrationsNamespaceDeclaredTwice(): void
     {
         $registry = new Registry('newsletter');
@@ -819,6 +860,33 @@ final class RegistryTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAQueuedTaskDeclaredTwice(): void
+    {
+        $registry = new Registry('seo');
+        $registry->task('apply', RecordingTask::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+
+        $registry->task('apply', RecordingTask::class);
+    }
+
+    #[Test]
+    public function rejectsAQueuedTaskThatIsNotOne(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+
+        (new Registry('seo'))->task('apply', ProbeMenu::class);
+    }
+
+    #[Test]
+    public function rejectsAQueuedTaskWithAnInvalidName(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+
+        (new Registry('seo'))->task('Not a name', RecordingTask::class);
+    }
+
+    #[Test]
     public function rejectsAScheduledClassOfTheWrongKind(): void
     {
         $this->expectException(InvalidDeclarationException::class);
@@ -893,6 +961,19 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('The add-on has already declared its menu');
 
         $registry->menu(ProbeMenu::class);
+    }
+
+    #[Test]
+    public function rejectsASecondMeter(): void
+    {
+        $registry = new Registry('seo');
+        $registry->module('/addon/admin.xml');
+        $registry->meter(ProbeMeter::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('The add-on has already declared its meter');
+
+        $registry->meter(ProbeMeter::class);
     }
 
     #[Test]

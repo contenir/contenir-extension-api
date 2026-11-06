@@ -21,8 +21,10 @@ use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Module\MenuGroup;
 use Contenir\Extension\Api\Module\MenuInterface;
 use Contenir\Extension\Api\Operation\OperationResultInterface;
+use Contenir\Extension\Api\Queue\TaskQueueInterface;
 use Contenir\Extension\Api\Record\LinkableSection;
 use Contenir\Extension\Api\Record\RecordsInterface;
+use Contenir\Extension\Api\Record\RecordUpdatesInterface;
 use Contenir\Extension\Api\Registration;
 use Contenir\Extension\Api\Registry;
 use Contenir\Extension\Api\Section\Element;
@@ -39,10 +41,12 @@ use Contenir\Extension\Api\Testing\Internal\Chain;
 use Contenir\Extension\Api\Testing\Internal\Checks;
 use Contenir\Extension\Api\Testing\Internal\Dispatcher;
 use Contenir\Extension\Api\Testing\Internal\HostRecords;
+use Contenir\Extension\Api\Testing\Internal\HostRecordUpdates;
 use Contenir\Extension\Api\Testing\Internal\HostSections;
 use Contenir\Extension\Api\Testing\Internal\HostSite;
 use Contenir\Extension\Api\Testing\Internal\Operations;
 use Contenir\Extension\Api\Testing\Internal\ProvidedServices;
+use Contenir\Extension\Api\Testing\Internal\QueuedTasks;
 use Contenir\Extension\Api\Testing\Internal\Records;
 use Contenir\Extension\Api\Testing\Internal\Responder;
 use Contenir\Extension\Api\Testing\Internal\Runtime;
@@ -120,6 +124,8 @@ final class InMemoryHost implements HostDriverInterface
 
     private readonly HostSections $sections;
 
+    private readonly QueuedTasks $queued;
+
     /**
      * @var array<string, Registration> By handle
      */
@@ -178,10 +184,13 @@ final class InMemoryHost implements HostDriverInterface
             $this->resolve(...),
         );
         $this->hostSite = new HostSite($this->records);
+        $this->queued   = new QueuedTasks($this->runtime, $this->signedIn, $this->registration(...));
         $this->services->add([
             RecordsInterface::class       => $this->hostRecords,
+            RecordUpdatesInterface::class => new HostRecordUpdates($this->records, $this->dispatcher, $this->signedIn),
             CurrentEditorInterface::class => $this->signedIn,
             SiteRequestsInterface::class  => $this->hostSite,
+            TaskQueueInterface::class     => $this->queued,
         ]);
 
         $responder     = new Responder($responses, $streams);
@@ -391,6 +400,16 @@ final class InMemoryHost implements HostDriverInterface
     public function runBackground(): void
     {
         $this->dispatcher->drain();
+    }
+
+    /**
+     * Runs the tasks add-ons have queued, each as the editor who queued it, and what they queue in turn.
+     *
+     * @return int How many tasks ran
+     */
+    public function runQueued(): int
+    {
+        return $this->queued->run();
     }
 
     #[Override]

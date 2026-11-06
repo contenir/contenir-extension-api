@@ -9,7 +9,7 @@ namespace Contenir\Extension\Api\Module;
  * admin.xml fragment of categories and sections, the folder of built scripts
  * and styles published under /cms/ext/<handle>/, its dashboard components,
  * templates for the few screens that can't be described, and what its
- * section menu lists beyond its admin.xml.
+ * section menu lists beyond its admin.xml, and what its dashboard card reads.
  *
  * @api
  */
@@ -18,6 +18,9 @@ final readonly class Module
     /**
      * @param list<Component>                    $components
      * @param class-string<MenuInterface>|null $menu
+     * @param class-string<MeterInterface>|null $meter
+     *
+     * @mago-expect lint:excessive-parameter-list One parameter per piece of a module.
      */
     public function __construct(
         public ?string $adminXml = null,
@@ -25,5 +28,6 @@ final readonly class Module
         public array $components = [],
         public ?string $templates = null,
         public ?string $menu = null,
+        public ?string $meter = null,
     ) {}
 }

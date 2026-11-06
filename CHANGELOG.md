@@ -11,6 +11,8 @@ adheres to [Semantic Versioning](https://semver.org/).
 - `RecordList`, a list of records the host draws as it draws its own: the table, each row's box and links, Select all,
   what can be done to the ticked rows, and pagination, or a message when it's empty. A template prints it with
   `$view->recordList($list)`, and an add-on calling that requires this version.
+- `DisplayedFieldTypeInterface` and `FieldDisplayLine`: a field type says how its value reads on a record's View page, as labelled
+  lines with an optional note the host draws as an info label, in place of what is stored as plain text.
 - `PanelPreview`, how a record reads as a search result, which a record panel shows under its image.
 
 ## [0.9.2] - 2026-11-06

@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.0] - 2026-11-06
+
+An add-on can name a section as the site does. It is additive: `heading` is optional and last, so every existing
+`new LinkableSection(...)` call keeps working, and a host that doesn't fill it leaves it null.
+
+### Added
+
+- `Record\LinkableSection::$heading`, the section's own title in the site's admin.xml ("Site Pages", "Projects"),
+  where `$title` stays the name of one record ("Page", "Project"). Null when the host gives none.
+
 ## [0.9.0] - 2026-11-05
 
 An add-on can ask the site about a saved record. It is additive: a host that doesn't lend the new service keeps

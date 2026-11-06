@@ -39,6 +39,18 @@ final class LinkableSectionTest extends TestCase
     }
 
     #[Test]
+    public function hasNoHeadingUnlessItGivesOne(): void
+    {
+        static::assertSame(
+            [null, 'Site Pages'],
+            [
+                (new LinkableSection('page', 'Page'))->heading,
+                (new LinkableSection('page', 'Page', heading: 'Site Pages'))->heading,
+            ],
+        );
+    }
+
+    #[Test]
     public function isNotCreatableAndHasNoWorkflowsUnlessItSays(): void
     {
         $section = new LinkableSection('news', 'News article');
@@ -54,5 +66,14 @@ final class LinkableSectionTest extends TestCase
         $this->expectExceptionMessage($message);
 
         new LinkableSection($section, $title);
+    }
+
+    #[Test]
+    public function refusesAnEmptyHeading(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('A linkable section heading must not be empty');
+
+        new LinkableSection('page', 'Page', heading: '');
     }
 }

@@ -271,7 +271,7 @@ answered, and null when no one is signed in, as in a public webhook, a scheduled
 
 A host may also lend add-ons the site's records from `services()` as `Record\RecordsInterface`, which an add-on asks
 `has()` for first, for add-ons that link to them, such as a menu's items. Only the sections the site marks as
-linkable are offered, each a `Record\LinkableSection` naming its records ("Page", "News article"), whether new ones
+linkable are offered, each a `Record\LinkableSection` naming its records ("Page", "News article") and, as `heading`, the section itself ("Site Pages"), whether new ones
 can be made there, and the `Record\Workflow`s they can be made with:
 
 ```php

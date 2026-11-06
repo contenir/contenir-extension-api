@@ -8,6 +8,8 @@ use Contenir\Extension\Api\Context\ExtensionContextInterface;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Panel\Link;
 use Contenir\Extension\Api\Panel\Panel;
+use Contenir\Extension\Api\Panel\PanelImage;
+use Contenir\Extension\Api\Panel\PanelRow;
 use Contenir\Extension\Api\Panel\RecordView;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberPanel;
 use Contenir\Extension\Api\Url\RecordReference;
@@ -28,6 +30,11 @@ final class PanelTest extends TestCase
             'a panel title'    => [static fn(): Panel => new Panel(' '), 'A panel title must not be empty'],
             'a link label'     => [static fn(): Link => new Link('', '/x'), 'A panel link label must not be empty'],
             'a link URL'       => [static fn(): Link => new Link('Open', ''), 'A panel link URL must not be empty'],
+            'an image URL'     => [
+                static fn(): PanelImage => new PanelImage(' '),
+                'A panel image URL must not be empty',
+            ],
+            'a row label'      => [static fn(): PanelRow => new PanelRow(''), 'A panel row label must not be empty'],
             'a record section' => [
                 static fn(): RecordView => new RecordView('', 1),
                 'A record view section must not be empty',
@@ -47,6 +54,22 @@ final class PanelTest extends TestCase
     }
 
     #[Test]
+    public function aPanelWithOnlyATitleParagraphsAndLinksHasNoImageRowsOrMenu(): void
+    {
+        $panel = new Panel('Newsletter', ['Subscribed.'], [new Link('Open', '/x')]);
+
+        static::assertSame([null, [], []], [$panel->image, $panel->rows, $panel->menu]);
+    }
+
+    #[Test]
+    public function aRowNeedsNeitherADetailNorAFixLink(): void
+    {
+        $row = new PanelRow('Share image');
+
+        static::assertSame(['', null], [$row->detail, $row->fix]);
+    }
+
+    #[Test]
     public function describesAPanel(): void
     {
         $link  = new Link('Open the list', '/admin/extension/newsletter/subscribers');
@@ -55,6 +78,21 @@ final class PanelTest extends TestCase
         static::assertSame(
             ['Newsletter', ['Subscribed.'], [$link], 'Open the list', '/admin/extension/newsletter/subscribers'],
             [$panel->title, $panel->paragraphs, $panel->links, $link->label, $link->url],
+        );
+    }
+
+    #[Test]
+    public function describesAPanelWithAnImageRowsAndAMenu(): void
+    {
+        $image = new PanelImage('/asset/share.jpg', 'The house at dusk');
+        $fix   = new Link('Fix', '/admin/records/12');
+        $row   = new PanelRow('Description', 'Missing', $fix);
+        $menu  = [new Link('Hide from search', '/admin/hide/12')];
+        $panel = new Panel('SEO', image: $image, rows: [$row], menu: $menu);
+
+        static::assertSame(
+            [$image, [$row], $menu, 'Description', 'Missing', $fix, 'The house at dusk'],
+            [$panel->image, $panel->rows, $panel->menu, $row->label, $row->detail, $row->fix, $image->alt],
         );
     }
 

@@ -27,6 +27,8 @@ use Contenir\Extension\Api\Module\MeterInterface;
 use Contenir\Extension\Api\Module\Module;
 use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Panel\RecordPanelInterface;
+use Contenir\Extension\Api\Queue\QueuedTaskInterface;
+use Contenir\Extension\Api\Queue\TaskDeclaration;
 use Contenir\Extension\Api\Schedule\Frequency;
 use Contenir\Extension\Api\Schedule\ScheduleDeclaration;
 use Contenir\Extension\Api\Schedule\ScheduledTaskInterface;
@@ -116,6 +118,11 @@ final class Registry
      * @var array<string, PanelDeclaration>
      */
     private array $panels = [];
+
+    /**
+     * @var array<string, TaskDeclaration>
+     */
+    private array $tasks = [];
 
     private ?string $adminXml = null;
 
@@ -449,6 +456,7 @@ final class Registry
             panels: $this->panels,
             services: $this->services,
             sectionBlock: $this->sectionBlock,
+            tasks: $this->tasks,
         );
     }
 
@@ -528,6 +536,22 @@ final class Registry
         }
 
         $this->settingsSections[$this->free('settings section', $section->name, $this->settingsSections)] = $section;
+    }
+
+    /**
+     * Work the add-on queues for the host's job runner with TaskQueueInterface, run as the editor who queued it.
+     *
+     * @param class-string<QueuedTaskInterface> $class
+     *
+     * @throws InvalidDeclarationException When the name is malformed or taken, or the class is not a queued task.
+     */
+    public function task(string $name, string $class): void
+    {
+        Names::name('Task', $name);
+        $this->tasks[$this->free('task', $name, $this->tasks)] = new TaskDeclaration(
+            $name,
+            Names::implementing('Queued task', $class, QueuedTaskInterface::class),
+        );
     }
 
     /**

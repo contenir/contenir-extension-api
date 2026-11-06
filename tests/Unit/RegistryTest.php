@@ -42,6 +42,7 @@ use Contenir\Extension\Api\Tests\TestAsset\Extension\ListFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\MailingListFactory;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\MailingListInterface;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\PurgeHandler;
+use Contenir\Extension\Api\Tests\TestAsset\Extension\RecordingTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ResyncTask;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\ShadeFieldType;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SignedWebhook;
@@ -179,6 +180,15 @@ final class RegistryTest extends TestCase
             )],
             $registry->registration()->listeners,
         );
+    }
+
+    #[Test]
+    public function declaresAQueuedTask(): void
+    {
+        $registry = new Registry('seo');
+        $registry->task('apply', RecordingTask::class);
+
+        static::assertSame(RecordingTask::class, $registry->registration()->tasks['apply']->class);
     }
 
     #[Test]
@@ -847,6 +857,25 @@ final class RegistryTest extends TestCase
         $this->expectExceptionMessage('Record panel');
 
         (new Registry('newsletter'))->panel('subscriber', SignupScripts::class);
+    }
+
+    #[Test]
+    public function rejectsAQueuedTaskDeclaredTwice(): void
+    {
+        $registry = new Registry('seo');
+        $registry->task('apply', RecordingTask::class);
+
+        $this->expectException(InvalidDeclarationException::class);
+
+        $registry->task('apply', RecordingTask::class);
+    }
+
+    #[Test]
+    public function rejectsAQueuedTaskThatIsNotOne(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+
+        (new Registry('seo'))->task('apply', ProbeMenu::class);
     }
 
     #[Test]

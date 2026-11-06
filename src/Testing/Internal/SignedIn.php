@@ -35,6 +35,16 @@ final class SignedIn implements CurrentEditorInterface
     }
 
     /**
+     * The grants the host is acting on, null for everything.
+     *
+     * @return list<string>|null
+     */
+    public function grants(): ?array
+    {
+        return $this->grants;
+    }
+
+    /**
      * Whether the editor holds $privilege on $resource, as handle() reads
      * grants.
      */

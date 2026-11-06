@@ -14,6 +14,7 @@ allow it.
 
 ### Added
 
+- `Queue\TaskQueueInterface`, lent from `services()`, and `Queue\QueuedTaskInterface`, declared with `Registry::task()`: an add-on queues its own task, with a JSON payload, for the host's job runner. The task runs as the editor signed in when it was queued, and the services it is lent, such as the record updates, check that editor's permissions again when it runs. A host without a job runner doesn't lend the queue, so an add-on asks `has()` first. `Testing\InMemoryHost` lends it and `runQueued()` runs what is queued; `Event\Extension\FailurePoint` gains `Task`, `Registration` takes the `tasks` as an optional last argument.
 - `Module\MeterInterface`, declared with `Registry::meter()` after `module()`: a module reads how it stands on the host's dashboard card for it. It answers a `Module\Meter` (a headline value and label, a `Module\MeterTone`, an optional caption and a list of `Module\MeterSegment` for one divided bar and its legend) or null while there is nothing to read yet. The host draws every module's meter in one shared layout. `Module\Module` takes the class as an optional last `meter` argument, and `Event\Extension\FailurePoint` gains `Meter`, where a failing meter is reported.
 - `Panel\Panel` takes `image` (a `Panel\PanelImage`: URL and alt text, cropped by the host to 1.91 to 1), `rows` (a
   list of `Panel\PanelRow`: label, short detail and an optional `Panel\Link` for its Fix button) and `menu` (a list of

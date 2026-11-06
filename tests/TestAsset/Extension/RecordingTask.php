@@ -10,6 +10,7 @@ use Contenir\Extension\Api\Queue\QueuedTaskInterface;
 use Override;
 use RuntimeException;
 
+use function array_key_exists;
 use function json_encode;
 
 /**
@@ -20,7 +21,7 @@ final class RecordingTask implements QueuedTaskInterface
     #[Override]
     public function run(array $payload, ExtensionContextInterface $context): void
     {
-        if (isset($payload['fail'])) {
+        if (array_key_exists('fail', $payload)) {
             throw new RuntimeException('The task could not finish');
         }
 

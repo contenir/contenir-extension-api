@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Conformance\Probe;
 
+use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Record\NewRecord;
 use Contenir\Extension\Api\Record\RecordsInterface;
 use Contenir\Extension\Api\Record\RecordSummary;
+use Contenir\Extension\Api\Record\RecordUpdate;
+use Contenir\Extension\Api\Record\RecordUpdatesInterface;
 use Contenir\Extension\Api\Url\RecordReference;
 
+use function array_filter;
 use function array_keys;
 use function ctype_digit;
+use function explode;
 
 /**
  * What the probe's records handler answers with: records and a create's
@@ -72,5 +77,37 @@ final class RecordsAnswer
             'path'   => $summary->path,
             'edit'   => null !== $summary->editUrl,
         ];
+    }
+
+    /**
+     * What the host's record updates answered for the records the query names, one entry each: the
+     * record, the outcome, the previous values and the fields that held it.
+     *
+     * @param array<string, string> $query
+     *
+     * @return list<array{record: string, outcome: string, previous: array<string, mixed>, errors: list<string>}>
+     *
+     * @throws InvalidDeclarationException When the host refuses so many updates in one call.
+     */
+    public static function updated(RecordUpdatesInterface $updates, array $query): array
+    {
+        $section = $query['section'] ?? '';
+        $values  = [$query['field'] ?? '' => $query['value'] ?? ''];
+        $made    = [];
+        foreach (array_filter(explode(',', $query['ids'] ?? '')) as $id) {
+            $made[] = new RecordUpdate(self::reference(['section' => $section, 'id' => $id]), $values);
+        }
+
+        $answers = [];
+        foreach ($updates->update($made) as $result) {
+            $answers[] = [
+                'record'   => "{$result->record->section}:{$result->record->id}",
+                'outcome'  => $result->result->outcome->value,
+                'previous' => $result->previous,
+                'errors'   => array_keys($result->result->errors),
+            ];
+        }
+
+        return $answers;
     }
 }

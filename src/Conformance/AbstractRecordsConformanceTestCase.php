@@ -44,7 +44,7 @@ abstract class AbstractRecordsConformanceTestCase extends AbstractConformanceTes
     /**
      * What lets a request reach the probe's records handler.
      */
-    private const string HANDLER = 'extension.probe.records';
+    protected const string HANDLER = 'extension.probe.records';
 
     #[Test]
     public function aCreateAFieldHoldsIsStoppedWithItsErrors(): void
@@ -231,6 +231,27 @@ abstract class AbstractRecordsConformanceTestCase extends AbstractConformanceTes
      */
     abstract protected function requests(): ServerRequestFactoryInterface;
 
+    /**
+     * What the probe's records handler answered, decoded.
+     *
+     * @param array<string, string> $query
+     * @param list<string>          $grants
+     */
+    protected function ask(array $query, array $grants = [self::HANDLER, self::PAGES], string $method = 'GET'): mixed
+    {
+        $response = $this->host->handle(
+            $this->requests()
+                ->createServerRequest(
+                    $method,
+                    'https://cms.example.com/admin/extension/probe/records?' . http_build_query($query),
+                )
+                ->withQueryParams($query),
+            $grants,
+        );
+
+        return json_decode((string) $response->getBody(), associative: true);
+    }
+
     #[Override]
     protected function setUp(): void
     {
@@ -264,27 +285,6 @@ abstract class AbstractRecordsConformanceTestCase extends AbstractConformanceTes
             'path'   => '/secret',
             'status' => RecordStatus::Published->value,
         ]);
-    }
-
-    /**
-     * What the probe's records handler answered, decoded.
-     *
-     * @param array<string, string> $query
-     * @param list<string>          $grants
-     */
-    private function ask(array $query, array $grants = [self::HANDLER, self::PAGES], string $method = 'GET'): mixed
-    {
-        $response = $this->host->handle(
-            $this->requests()
-                ->createServerRequest(
-                    $method,
-                    'https://cms.example.com/admin/extension/probe/records?' . http_build_query($query),
-                )
-                ->withQueryParams($query),
-            $grants,
-        );
-
-        return json_decode((string) $response->getBody(), associative: true);
     }
 
     /**

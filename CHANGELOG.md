@@ -21,6 +21,7 @@ allow it.
   and answers a `Record\RecordUpdateResult` for each, in order, carrying the save's `ActionResult` and, when Done, the
   values the changed fields held before. Each record is saved through the host's normal save, on its own.
 - `Testing\InMemoryHost` lends `RecordUpdatesInterface`, so an add-on's tests can run bulk updates.
+- `Conformance\AbstractRecordUpdatesConformanceTestCase`, for a host that lends the updates: it extends the records case, so a host extends it in place of that one. It checks that each update goes through the normal save (a Pre listener can stop it, a main-stage failure rolls it back, the Save events fire and the Create ones do not), that the editor needs permission to update the section, that a stopped record leaves the others saved, and the 50-record limit. `AbstractRecordsConformanceTestCase::ask()` and `HANDLER` are now protected, for it to build on.
 
 ## [0.9.1] - 2026-11-06
 

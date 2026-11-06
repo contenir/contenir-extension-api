@@ -23,6 +23,7 @@ use Contenir\Extension\Api\Migration\MigrationSet;
 use Contenir\Extension\Api\Migration\Target;
 use Contenir\Extension\Api\Module\Component;
 use Contenir\Extension\Api\Module\MenuInterface;
+use Contenir\Extension\Api\Module\MeterInterface;
 use Contenir\Extension\Api\Module\Module;
 use Contenir\Extension\Api\Panel\PanelDeclaration;
 use Contenir\Extension\Api\Panel\RecordPanelInterface;
@@ -131,6 +132,11 @@ final class Registry
      * @var class-string<MenuInterface>|null
      */
     private ?string $menu = null;
+
+    /**
+     * @var class-string<MeterInterface>|null
+     */
+    private ?string $meter = null;
 
     /**
      * @var array<string, Handle>
@@ -326,6 +332,23 @@ final class Registry
     }
 
     /**
+     * What the module's dashboard card reads, in the layout the host shares with the other cards that measure
+     * something. Only a module has a dashboard card, so declare module() first.
+     *
+     * @param class-string<MeterInterface> $class
+     *
+     * @throws InvalidDeclarationException When the add-on is not a module, the class is not a meter, or a meter is already declared.
+     */
+    public function meter(string $class): void
+    {
+        if (null === $this->adminXml) {
+            throw InvalidDeclarationException::because('Only a module has a dashboard card: declare module() first');
+        }
+
+        $this->meter = Names::implementing('Meter', $this->once('meter', $this->meter, $class), MeterInterface::class);
+    }
+
+    /**
      * A folder of migrations creating the add-on's ext_<handle>_ tables, in
      * the site's database unless $target says the CMS's.
      *
@@ -420,6 +443,7 @@ final class Registry
                 array_values($this->components),
                 $this->templates,
                 $this->menu,
+                $this->meter,
             ),
             dependencies: $this->dependencies,
             panels: $this->panels,

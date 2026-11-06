@@ -14,6 +14,7 @@ allow it.
 
 ### Added
 
+- `Module\MeterInterface`, declared with `Registry::meter()` after `module()`: a module reads how it stands on the host's dashboard card for it. It answers a `Module\Meter` (a headline value and label, a `Module\MeterTone`, an optional caption and a list of `Module\MeterSegment` for one divided bar and its legend) or null while there is nothing to read yet. The host draws every module's meter in one shared layout. `Module\Module` takes the class as an optional last `meter` argument.
 - `Panel\Panel` takes `image` (a `Panel\PanelImage`: URL and alt text, cropped by the host to 1.91 to 1), `rows` (a
   list of `Panel\PanelRow`: label, short detail and an optional `Panel\Link` for its Fix button) and `menu` (a list of
   `Panel\Link`, drawn as one "Actions" button).

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Tests\Unit\Testing\Internal;
 
+use Contenir\Extension\Api\Exception\BlockNotSavedException;
 use Contenir\Extension\Api\Exception\RowsRefusedException;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Record\RecordRow;
@@ -45,6 +46,23 @@ final class AddOnSectionsTest extends TestCase
     }
 
     #[Test]
+    public function anAddOnWithNoSectionBlocksRefusesASave(): void
+    {
+        $this->expectException(BlockNotSavedException::class);
+        $this->expectExceptionMessage('does not save its configuration');
+
+        (new NoSections())->save(self::SECTION, new Element('seo'), '');
+    }
+
+    #[Test]
+    public function anAddOnWithNoSectionBlocksSavesNothing(): void
+    {
+        $none = new NoSections();
+
+        static::assertSame(['', false], [$none->version(), $none->saves()]);
+    }
+
+    #[Test]
     public function anArrayValueReadsAsItsJsonAndAnythingElseAsNothing(): void
     {
         $this->records->put(self::SECTION, 1, ['seo' => ['robots' => 'noindex'], 'other' => new Element('x')]);
@@ -63,6 +81,15 @@ final class AddOnSectionsTest extends TestCase
         $this->expectExceptionMessage('Rows need a limit and offset of 0 or more');
 
         $this->sections->rows(self::SECTION, ['title'], limit: $limit, offset: $offset);
+    }
+
+    #[Test]
+    public function aSaveChangesTheVersion(): void
+    {
+        $before = $this->sections->version();
+        $this->sections->save(self::SECTION, new Element('seo'), $before);
+
+        static::assertSame(['1', '2'], [$before, $this->sections->version()]);
     }
 
     #[Test]
@@ -99,6 +126,24 @@ final class AddOnSectionsTest extends TestCase
     }
 
     #[Test]
+    public function refusesABlockNamedAfterAnotherAddOn(): void
+    {
+        $this->expectException(BlockNotSavedException::class);
+        $this->expectExceptionMessage('A block on project is named seo, not other');
+
+        $this->sections->save(self::SECTION, new Element('other'), $this->sections->version());
+    }
+
+    #[Test]
+    public function refusesASaveAskedAgainstAVersionThatHasMovedOn(): void
+    {
+        $this->expectException(BlockNotSavedException::class);
+        $this->expectExceptionMessage('has changed since it was read');
+
+        $this->sections->save(self::SECTION, new Element('seo'), 'stale');
+    }
+
+    #[Test]
     public function rowsReadAHundredFromTheFirstUnlessToldOtherwise(): void
     {
         $this->seed(101);
@@ -106,6 +151,20 @@ final class AddOnSectionsTest extends TestCase
         $ids = $this->ids($this->sections->rows(self::SECTION, ['title']));
 
         static::assertSame([100, 1, 100], [count($ids), $ids[0], $ids[99]]);
+    }
+
+    #[Test]
+    public function savesABlockReplacingTheOneTheSectionHad(): void
+    {
+        $this->sections->save(self::SECTION, new Element('seo', ['schema' => 'WebPage']), $this->sections->version());
+
+        static::assertSame('WebPage', $this->sections->block(self::SECTION)?->element->attribute('schema'));
+    }
+
+    #[Test]
+    public function savesWhereTheHostDoes(): void
+    {
+        static::assertTrue($this->sections->saves());
     }
 
     #[Override]

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Section;
 
+use Contenir\Extension\Api\Exception\BlockNotSavedException;
 use Contenir\Extension\Api\Exception\RowsRefusedException;
 use Contenir\Extension\Api\Record\RecordRow;
 
@@ -42,4 +43,25 @@ interface SectionsInterface
      * @throws RowsRefusedException When $section has no block of the add-on's, a column is not one its block reads, or $limit or $offset is negative.
      */
     public function rows(string $section, array $columns, array $ids = [], int $limit = 100, int $offset = 0): array;
+
+    /**
+     * Replaces the add-on's block on $section with $block, leaving the rest of the section as it is. The
+     * block takes the add-on's name, and the section gets the block if it had none.
+     *
+     * @param string $version What version() gave when the add-on read the block it changed
+     *
+     * @throws BlockNotSavedException When the host does not save here, the configuration has changed since $version, or the result would not load.
+     */
+    public function save(string $section, Element $block, string $version): void;
+
+    /**
+     * Whether the host saves a block from here. A site's configuration saves only where it is developed,
+     * so on a live site this is false and a save is refused.
+     */
+    public function saves(): bool;
+
+    /**
+     * The version of the site's configuration as it is now, which a save asks to find there still.
+     */
+    public function version(): string;
 }

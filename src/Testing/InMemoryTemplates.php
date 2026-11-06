@@ -9,6 +9,8 @@ use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Handler\Tab;
 use Contenir\Extension\Api\Internal\Names;
 use Contenir\Extension\Api\Module\TemplateHelpersInterface;
+use Contenir\Extension\Api\RecordList\RecordList;
+use Contenir\Extension\Api\Testing\Internal\PlainRecordList;
 use LogicException;
 use Override;
 use Throwable;
@@ -87,6 +89,12 @@ final readonly class InMemoryTemplates implements TemplateHelpersInterface
     public function icon(string $name): string
     {
         return sprintf('<svg class="icon" data-icon="%s" aria-hidden="true"></svg>', $this->escape($name));
+    }
+
+    #[Override]
+    public function recordList(RecordList $list): string
+    {
+        return (new PlainRecordList($this))->of($list, self::FORM_FIELD);
     }
 
     /**

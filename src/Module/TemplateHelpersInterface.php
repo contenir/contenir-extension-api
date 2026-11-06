@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Module;
 
+use Contenir\Extension\Api\RecordList\RecordList;
+
 /**
  * What a module's template may ask of the host, as $view. A template uses
  * these and the dashboard theme's markup and classes, never the host's own
- * view helpers, so the same template draws in any host.
+ * view helpers, so the same template draws in any host. A host with this API
+ * version draws recordList(), so an add-on calling it requires that version.
  *
  * @api
  */
@@ -29,6 +32,11 @@ interface TemplateHelpersInterface
      * own icons give it.
      */
     public function icon(string $name): string;
+
+    /**
+     * A list of records as the host draws its own, ready to print inside the template's card.
+     */
+    public function recordList(RecordList $list): string;
 
     /**
      * Another of the module's templates, drawn with $values.

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Contenir\Extension\Api\Testing\Internal;
 
+use Contenir\Extension\Api\Exception\BlockNotSavedException;
 use Contenir\Extension\Api\Exception\RowsRefusedException;
+use Contenir\Extension\Api\Section\Element;
 use Contenir\Extension\Api\Section\SectionBlock;
 use Contenir\Extension\Api\Section\SectionsInterface;
 use Override;
@@ -37,5 +39,23 @@ final readonly class NoSections implements SectionsInterface
     public function rows(string $section, array $columns, array $ids = [], int $limit = 100, int $offset = 0): array
     {
         throw RowsRefusedException::section('', $section);
+    }
+
+    #[Override]
+    public function save(string $section, Element $block, string $version): void
+    {
+        throw BlockNotSavedException::notAllowed();
+    }
+
+    #[Override]
+    public function saves(): bool
+    {
+        return false;
+    }
+
+    #[Override]
+    public function version(): string
+    {
+        return '';
     }
 }

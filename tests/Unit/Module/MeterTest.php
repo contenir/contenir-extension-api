@@ -35,6 +35,18 @@ final class MeterTest extends TestCase
     }
 
     #[Test]
+    public function aSegmentHasNoAddressUnlessGivenOne(): void
+    {
+        static::assertSame(
+            [null, '/admin/assets?problem=unused'],
+            [
+                (new MeterSegment('Unused', 2, MeterTone::Neutral))->url,
+                (new MeterSegment('Unused', 2, MeterTone::Neutral, '/admin/assets?problem=unused'))->url,
+            ],
+        );
+    }
+
+    #[Test]
     public function carriesWhatItReadsWithItsSegments(): void
     {
         $segment = new MeterSegment('High impact', 3, MeterTone::Poor);
@@ -55,6 +67,36 @@ final class MeterTest extends TestCase
         $meter = new Meter('72', 'Needs work', MeterTone::Warning);
 
         static::assertSame([null, []], [$meter->caption, $meter->segments]);
+    }
+
+    #[Test]
+    public function keepsTheAreasNameUnlessGivenAHeading(): void
+    {
+        static::assertSame(
+            [null, 'SEO ranking'],
+            [
+                (new Meter('72', 'Needs work', MeterTone::Warning))->heading,
+                (new Meter('72', 'Needs work', MeterTone::Warning, heading: 'SEO ranking'))->heading,
+            ],
+        );
+    }
+
+    #[Test]
+    public function rejectsABlankHeading(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('A meter heading must not be empty');
+
+        new Meter('72', 'Needs work', MeterTone::Warning, heading: ' ');
+    }
+
+    #[Test]
+    public function rejectsASegmentWithABlankAddress(): void
+    {
+        $this->expectException(InvalidDeclarationException::class);
+        $this->expectExceptionMessage('A meter segment address must not be empty');
+
+        new MeterSegment('Unused', 2, MeterTone::Neutral, ' ');
     }
 
     #[Test]

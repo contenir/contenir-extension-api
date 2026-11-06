@@ -7,6 +7,12 @@ namespace Contenir\Extension\Api\Tests\Integration\Testing;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Handle;
 use Contenir\Extension\Api\Handler\Tab;
+use Contenir\Extension\Api\RecordList\RecordList;
+use Contenir\Extension\Api\RecordList\RecordListAction;
+use Contenir\Extension\Api\RecordList\RecordListCell;
+use Contenir\Extension\Api\RecordList\RecordListLink;
+use Contenir\Extension\Api\RecordList\RecordListPager;
+use Contenir\Extension\Api\RecordList\RecordListRow;
 use Contenir\Extension\Api\Testing\InMemoryTemplates;
 use LogicException;
 use Override;
@@ -22,6 +28,78 @@ use function ob_get_level;
 final class InMemoryTemplatesTest extends TestCase
 {
     private InMemoryTemplates $templates;
+
+    #[Test]
+    public function drawsAnEmptyRecordListAsItsMessage(): void
+    {
+        $list = new RecordList(
+            ['Record'],
+            [],
+            new RecordListPager(1, 50, 0, static fn(int $page): string => "/p/{$page}"),
+            emptyTitle: 'Nothing & all',
+            emptyDescription: 'No <record>',
+        );
+
+        static::assertSame(
+            '<div class="empty"><h2>Nothing &amp; all</h2><p>No &lt;record&gt;</p></div>',
+            $this->templates->recordList($list),
+        );
+    }
+
+    #[Test]
+    public function drawsARecordListWithItsBoxesLinksAndPages(): void
+    {
+        $list = new RecordList(
+            ['Record', 'To fix'],
+            [
+                new RecordListRow(
+                    'site|1',
+                    'Tea & cake',
+                    [
+                        RecordListCell::of('Tea & cake', '/edit?a=1&b=2'),
+                        new RecordListCell(['No <title>', 'No image']),
+                    ],
+                    [new RecordListLink('View', '/view?a=1&b=2', 'eye')],
+                ),
+                new RecordListRow('site|2', 'Two', [RecordListCell::of('Two'), RecordListCell::of('Fine')]),
+            ],
+            new RecordListPager(1, 3, 6, static fn(int $page): string => "/p?page={$page}&x=1"),
+            bulk: [
+                new RecordListAction('Hide', 'eye-off', 'fix', 'hide'),
+                new RecordListAction('Show', 'eye', 'fix', 'show'),
+            ],
+            bulkUrl: '/fix?a=1&b=2',
+        );
+
+        static::assertSame(
+            '<form action="/fix?a=1&amp;b=2">'
+                . InMemoryTemplates::FORM_FIELD
+                . '<button name="fix" value="hide">Hide</button><button name="fix" value="show">Show</button></form>'
+                . '<table><tr><th>Record</th><th>To fix</th></tr><tr>'
+                . '<td><input type="checkbox" name="records[]" value="site|1" aria-label="Select Tea &amp; cake"></td>'
+                . '<td><a href="/edit?a=1&amp;b=2">Tea &amp; cake</a></td><td>No &lt;title&gt; / No image</td>'
+                . '<td><a href="/view?a=1&amp;b=2">View</a></td></tr><tr>'
+                . '<td><input type="checkbox" name="records[]" value="site|2" aria-label="Select Two"></td>'
+                . '<td>Two</td><td>Fine</td></tr></table>'
+                . '<a href="/p?page=1&amp;x=1">1</a><a href="/p?page=2&amp;x=1">2</a>',
+            $this->templates->recordList($list),
+        );
+    }
+
+    #[Test]
+    public function drawsARecordListWithoutBoxesOrPagesWhereItHasNeither(): void
+    {
+        $list = new RecordList(
+            ['Record'],
+            [new RecordListRow('1', 'One', [RecordListCell::of('One')])],
+            new RecordListPager(1, 50, 1, static fn(int $page): string => "/p/{$page}"),
+        );
+
+        static::assertSame(
+            '<table><tr><th>Record</th></tr><tr><td>One</td></tr></table>',
+            $this->templates->recordList($list),
+        );
+    }
 
     #[Test]
     public function drawsATemplateWithItsValues(): void
@@ -76,6 +154,21 @@ final class InMemoryTemplatesTest extends TestCase
         static::assertSame(
             ['/cms/ext/fixture/js/editor.js', '/cms/ext/fixture/css/fixture.css'],
             [$this->templates->asset('js/editor.js'), $this->templates->asset('/css/fixture.css')],
+        );
+    }
+
+    #[Test]
+    public function linksAPageForTheRecordsLeftOver(): void
+    {
+        $list = new RecordList(
+            ['Record'],
+            [new RecordListRow('1', 'One', [RecordListCell::of('One')])],
+            new RecordListPager(1, 3, 7, static fn(int $page): string => "/{$page}"),
+        );
+
+        static::assertStringEndsWith(
+            '</table><a href="/1">1</a><a href="/2">2</a><a href="/3">3</a>',
+            $this->templates->recordList($list),
         );
     }
 

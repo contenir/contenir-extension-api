@@ -24,6 +24,8 @@ final class SectionBlocks
      */
     private array $fields = [];
 
+    private int $revision = 0;
+
     /**
      * @return list<string>
      */
@@ -60,7 +62,16 @@ final class SectionBlocks
      */
     public function put(string $section, Element $element, array $fields): void
     {
+        ++$this->revision;
         $this->elements[$section][$element->name] = $element;
         $this->fields[$section]                   = $fields;
+    }
+
+    /**
+     * How many times a block has been put, which stands for the version of the configuration.
+     */
+    public function revision(): int
+    {
+        return $this->revision;
     }
 }

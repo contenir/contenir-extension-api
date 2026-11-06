@@ -21,8 +21,12 @@ final readonly class Meter
      * @param string             $label   What the value means, such as "Needs work"
      * @param ?string            $caption One line of context, such as when it was last checked, or null for none
      * @param list<MeterSegment> $segments
+     * @param ?string            $heading A name for the card the meter heads, where the area's own name isn't
+     *                                    enough, such as "SEO ranking", or null to keep the area's
      *
-     * @throws InvalidDeclarationException When the value or label is empty or the caption is blank.
+     * @throws InvalidDeclarationException When the value or label is empty or the caption or heading is blank.
+     *
+     * @mago-expect lint:excessive-parameter-list A meter is built with named arguments; all past its tone are optional.
      */
     public function __construct(
         public string $value,
@@ -30,11 +34,16 @@ final readonly class Meter
         public MeterTone $tone,
         public ?string $caption = null,
         public array $segments = [],
+        public ?string $heading = null,
     ) {
         Names::text('A meter value', $value);
         Names::text('A meter label', $label);
         if (null !== $caption) {
             Names::text('A meter caption', $caption);
+        }
+
+        if (null !== $heading) {
+            Names::text('A meter heading', $heading);
         }
     }
 }

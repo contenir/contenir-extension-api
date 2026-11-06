@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.3] - 2026-11-06
+
+### Added
+
+- `RecordList`, a list of records the host draws as it draws its own: the table, each row's box and links, Select all,
+  what can be done to the ticked rows, and pagination, or a message when it's empty. A template prints it with
+  `$view->recordList($list)`, and an add-on calling that requires this version.
+- `PanelPreview`, how a record reads as a search result, which a record panel shows under its image.
+
 ## [0.9.2] - 2026-11-06
 
 A record panel can show an image, rows of what needs attention and an actions menu, and an add-on can change many

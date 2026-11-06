@@ -9,6 +9,7 @@ use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Panel\Link;
 use Contenir\Extension\Api\Panel\Panel;
 use Contenir\Extension\Api\Panel\PanelImage;
+use Contenir\Extension\Api\Panel\PanelPreview;
 use Contenir\Extension\Api\Panel\PanelRow;
 use Contenir\Extension\Api\Panel\RecordView;
 use Contenir\Extension\Api\Tests\TestAsset\Extension\SubscriberPanel;
@@ -58,7 +59,20 @@ final class PanelTest extends TestCase
     {
         $panel = new Panel('Newsletter', ['Subscribed.'], [new Link('Open', '/x')]);
 
-        static::assertSame([null, [], []], [$panel->image, $panel->rows, $panel->menu]);
+        static::assertSame([null, [], [], null], [$panel->image, $panel->rows, $panel->menu, $panel->preview]);
+    }
+
+    #[Test]
+    public function aPreviewHoldsATitleAndDescriptionEitherOfWhichMayBeMissing(): void
+    {
+        $preview = new PanelPreview('The house', 'At dusk');
+        $panel   = new Panel('SEO', preview: $preview);
+        $empty   = new PanelPreview();
+
+        static::assertSame(
+            [$preview, 'The house', 'At dusk', null, null],
+            [$panel->preview, $preview->title, $preview->description, $empty->title, $empty->description],
+        );
     }
 
     #[Test]

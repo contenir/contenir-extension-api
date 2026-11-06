@@ -22,8 +22,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 use function array_filter;
-use function array_key_last;
 use function array_map;
+use function array_pop;
 use function array_values;
 use function str_starts_with;
 
@@ -119,7 +119,7 @@ final class QueuedTasksTest extends TestCase
         $messages = array_map(static fn(array $entry): string => (string) $entry['message'], $this->host->logs());
         $ran      = array_values(array_filter($messages, static fn(string $m): bool => str_starts_with($m, 'ran ')));
 
-        return $ran[array_key_last($ran)] ?? null;
+        return array_pop($ran);
     }
 
     private function queue(): TaskQueueInterface

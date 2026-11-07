@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.4] - 2026-11-07
+
+### Added
+
+- `SectionDisplayedFieldTypeInterface`: a displayed field type is told the record's section and the add-on's context, so the lines it gives can depend on how the section is configured. A host that doesn't know the section keeps calling `display()`.
+
 ## [0.9.3] - 2026-11-06
 
 ### Added

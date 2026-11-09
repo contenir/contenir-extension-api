@@ -8,7 +8,8 @@ use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\Internal\Names;
 
 /**
- * A short label before a line of a {@see RecordListCell}, such as "High", coloured by its tone.
+ * How serious a line of a {@see RecordListCell} is, such as "High": the host draws a dot in the tone's colour
+ * before the line, with the label as its name.
  *
  * @api
  */

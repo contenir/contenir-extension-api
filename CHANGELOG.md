@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `RecordListBadge` and `RecordListTone`, and `RecordListCell::$badges`: a line of a record list cell can carry a badge, which the host draws as a dot in the tone's colour before the line, with the label as its name. A cell with badges needs one for each line, or null for none. A host without it draws the lines plain.
+- `SettingsSection::$hidden`: a section the host keeps out of its menus and screens, for one that only holds values the add-on reads and writes itself through `ExtensionContextInterface::settings()`. A host without it draws such a section as an ordinary screen.
+
 ## [0.9.4] - 2026-11-07
 
 ### Added

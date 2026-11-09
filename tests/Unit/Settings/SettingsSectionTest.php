@@ -26,15 +26,24 @@ final class SettingsSectionTest extends TestCase
         $section = new SettingsSection('newsletter', 'Newsletter', SettingsCategory::Integration, new Form());
 
         static::assertSame(
-            [[], [], [], [], null],
+            [[], [], [], [], null, false],
             [
                 $section->operations,
                 $section->contributions,
                 $section->saveListeners,
                 $section->rowHydrators,
                 $section->order,
+                $section->hidden,
             ],
         );
+    }
+
+    #[Test]
+    public function canBeHiddenFromTheHostsMenusAndScreens(): void
+    {
+        $section = new SettingsSection('strategy', 'Strategy', SettingsCategory::Seo, new Form(), hidden: true);
+
+        static::assertTrue($section->hidden);
     }
 
     #[Test]

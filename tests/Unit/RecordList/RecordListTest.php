@@ -8,10 +8,12 @@ use Closure;
 use Contenir\Extension\Api\Exception\InvalidDeclarationException;
 use Contenir\Extension\Api\RecordList\RecordList;
 use Contenir\Extension\Api\RecordList\RecordListAction;
+use Contenir\Extension\Api\RecordList\RecordListBadge;
 use Contenir\Extension\Api\RecordList\RecordListCell;
 use Contenir\Extension\Api\RecordList\RecordListLink;
 use Contenir\Extension\Api\RecordList\RecordListPager;
 use Contenir\Extension\Api\RecordList\RecordListRow;
+use Contenir\Extension\Api\RecordList\RecordListTone;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -65,12 +67,36 @@ final class RecordListTest extends TestCase
             'page zero'                => [static fn(): RecordListPager => self::pager(page: 0)],
             'a page size of zero'      => [static fn(): RecordListPager => self::pager(perPage: 0)],
             'a negative total'         => [static fn(): RecordListPager => self::pager(total: -1)],
+            'an empty badge label'     => [
+                static fn(): RecordListBadge => new RecordListBadge(' ', RecordListTone::Info),
+            ],
+            'a badge short of a line'  => [
+                static fn(): RecordListCell => new RecordListCell(['One', 'Two'], badges: [null]),
+            ],
         ];
     }
 
     private static function pager(int $page = 1, int $perPage = 50, int $total = 0): RecordListPager
     {
         return new RecordListPager($page, $perPage, $total, static fn(int $page): string => "/p/{$page}");
+    }
+
+    #[Test]
+    public function aCellHasNoBadgesUnlessGivenSome(): void
+    {
+        static::assertSame([], (new RecordListCell(['One']))->badges);
+    }
+
+    #[Test]
+    public function aCellHoldsABadgeForEachLineOrNone(): void
+    {
+        $high = new RecordListBadge('High', RecordListTone::Danger);
+        $cell = new RecordListCell(['One', 'Two'], badges: [$high, null]);
+
+        static::assertSame([
+            [$high,  null],
+            ['High', RecordListTone::Danger],
+        ], [$cell->badges, [$high->label, $high->tone]]);
     }
 
     #[Test]

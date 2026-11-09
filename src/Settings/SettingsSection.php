@@ -30,6 +30,7 @@ final readonly class SettingsSection
      * @param list<class-string<SaveListenerInterface>> $saveListeners Run when the section is saved, in order
      * @param list<class-string<RowHydratorInterface>>  $rowHydrators  Supply transient field values when the section loads
      * @param ?int                                      $order         Position within the category; null appends it
+     * @param bool                                      $hidden        Kept out of the host's menus and screens, for a section that only holds values the add-on reads and writes itself
      *
      *
      * @mago-expect lint:excessive-parameter-list Sections are declared with named arguments; all but four are optional.
@@ -46,6 +47,7 @@ final readonly class SettingsSection
         public array $saveListeners = [],
         public array $rowHydrators = [],
         public ?int $order = null,
+        public bool $hidden = false,
     ) {
         Names::name('Settings section', $name);
         Names::text('A settings section title', $title);

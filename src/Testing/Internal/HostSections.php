@@ -32,6 +32,7 @@ final readonly class HostSections
         private Runtime $runtime,
         private Bindings $bindings,
         private Closure $resolve,
+        private BlockOverrides $overrides = new BlockOverrides(),
     ) {}
 
     /**
@@ -50,6 +51,7 @@ final readonly class HostSections
             $this->records,
             (new GuardedBlockReader($this->runtime, $registration->handle, $reader))->columns(...),
             $this->hostRecords->isLinkable(...),
+            $this->overrides,
         );
     }
 

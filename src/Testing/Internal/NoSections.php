@@ -15,6 +15,8 @@ use Override;
  * The sections of an add-on that has no section blocks: none, and no rows.
  *
  * @internal
+ *
+ * @mago-expect lint:too-many-methods One method per method of SectionsInterface.
  */
 final readonly class NoSections implements SectionsInterface
 {
@@ -29,6 +31,33 @@ final readonly class NoSections implements SectionsInterface
     {
         return [];
     }
+
+    #[Override]
+    public function declared(string $section): ?SectionBlock
+    {
+        return null;
+    }
+
+    #[Override]
+    public function overridden(string $section): bool
+    {
+        return false;
+    }
+
+    #[Override]
+    public function override(string $section, Element $block, string $version): void
+    {
+        throw BlockNotSavedException::refused("Section {$section} has no block to override");
+    }
+
+    #[Override]
+    public function overridesVersion(): string
+    {
+        return '';
+    }
+
+    #[Override]
+    public function restore(string $section, string $version): void {}
 
     /**
      * Refuses every read, so its limit and offset never matter.

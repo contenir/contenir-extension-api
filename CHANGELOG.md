@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `SectionsInterface::override()`, `restore()`, `overridden()`, `declared()` and `overridesVersion()`: an add-on puts a block of its own in the place of the one admin.xml puts on a section, for the environment it runs on, and the host keeps it beside the site's data, on a live site as anywhere else. `block()`, `blocks()` and `rows()` work from the override from then on, and `declared()` still gives what admin.xml says. An override stands in only for a block admin.xml puts on the section, takes the add-on's name, and is lent only the columns that are fields of the section; an override or a restore made against overrides that have since changed is refused, each with a `BlockNotSavedException` saying why. A host implementing `SectionsInterface` has the five methods to add.
+- `AbstractBlockOverridesConformanceTestCase`, which a host that keeps overrides extends, and the probe's `overrides` handler that it drives.
+
 ## [0.9.5] - 2026-11-09
 
 ### Added

@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.7] - 2026-11-20
+
+### Added
+
+- `Field\ControlDataInterface`: a field type gives its control data about the record it is drawn for, such as what the record's other fields give it by default, which `controlData()` returns for the record's section, value and values by column. A host that implements it writes the data on the control as JSON in a `data-control` attribute as it draws a record's edit form; one that doesn't leaves the attribute out, and the type's component works without it.
+
 ## [0.9.6] - 2026-11-11
 
 ### Added

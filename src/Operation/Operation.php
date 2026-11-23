@@ -13,8 +13,8 @@ use Contenir\Extension\Api\Internal\Values;
  * (e.g. "Clear cache", "Regenerate favicons") backed by an
  * OperationHandlerInterface.
  *
- * Operations round-trip through a host's configuration (Zend_Config in the
- * legacy CMS), so the value object is array-serialisable: toArray() emits
+ * Operations round-trip through a host's configuration, which is plain nested
+ * arrays, so the value object is array-serialisable: toArray() emits
  * scalars only and fromArray() reads every field back. The host renders the
  * button from this metadata and dispatches to $handler when clicked.
  *

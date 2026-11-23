@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- A host's configuration reaches an add-on as plain nested arrays, never as a framework's config object. The legacy CMS stops handing add-ons a `Zend_Config` under `config`, `settings` and `admin` (nothing in this package or the add-ons read it); an add-on that read one reads the arrays its context gives, such as `ExtensionContextInterface::settings()`.
+
 ## [0.9.7] - 2026-11-20
 
 ### Added

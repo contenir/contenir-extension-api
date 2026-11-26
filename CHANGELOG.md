@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-26
+
 ### Changed
 
 - A host's configuration reaches an add-on as plain nested arrays, never as a framework's config object. The legacy CMS stops handing add-ons a `Zend_Config` under `config`, `settings` and `admin` (nothing in this package or the add-ons read it); an add-on that read one reads the arrays its context gives, such as `ExtensionContextInterface::settings()`.
